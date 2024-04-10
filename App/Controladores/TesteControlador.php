@@ -4,8 +4,9 @@ namespace App\Controladores;
 
 final class TesteControlador
 {
-    public function teste()
+
+    public static function teste()
     {
-        
+        print('aaa');
     }
 }
