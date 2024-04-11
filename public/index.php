@@ -1,11 +1,11 @@
 <?php
 
-use App\Aplicacao;
+require '../vendor/autoload.php';
 
-require '../App/Aplicacao.php';
+use App\Aplicacao;
 
 $app = new Aplicacao();
 
-$app->adicionarRota('test', [TesteControlador::class, 'teste']);
+$app->adicionarRota('test', [App\Controladores\TesteControlador::class, 'teste']);
 
-$app->run();
+$app->rodar();

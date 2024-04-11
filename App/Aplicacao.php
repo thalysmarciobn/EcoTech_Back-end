@@ -6,16 +6,12 @@ class Aplicacao
 {
     private $rotas = array();
 
-    private $diretorioControladores = '\App\Controladores';
-
     public function adicionarRota($rota, $parametros): void
     {
         $classe = $parametros[0];
         $funcao = $parametros[1];
         
-        require('../App/Controladores/' . $classe. '.php');
-        
-        $construtor = new \ReflectionMethod($this->diretorioControladores . '\\' . $classe, $funcao);
+        $construtor = new \ReflectionMethod($classe, $funcao);
         $chamada = [$rota, $construtor];
         
         if (!in_array($chamada, $this->rotas))
@@ -31,7 +27,7 @@ class Aplicacao
         header("Allow-Control-Access-Origin: *");
     }
     
-    public function run(): void
+    public function rodar(): void
     {
         $this->liberarOrigem();
 
