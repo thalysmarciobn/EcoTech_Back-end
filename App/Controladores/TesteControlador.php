@@ -5,9 +5,8 @@ namespace App\Controladores;
 final class TesteControlador
 {
 
-    public static function teste($pdo)
+    public static function teste()
     {
-        var_dump($pdo);
-        print('aaadfjhoisdfjiojhf ');
+        return ('Isso é um teste');
     }
 }

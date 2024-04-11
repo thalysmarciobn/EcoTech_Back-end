@@ -25,8 +25,13 @@ class PDO
         }
     }
     
-    public static function consulta($query)
+    public static function consulta(string $query)
     {
         return $this->pdo->query($query);
+    }
+
+    public static function preparar(string $query, array $opcoes = [])
+    {
+        return $this->pdo->prepare($query, $opcoes);
     }
 }

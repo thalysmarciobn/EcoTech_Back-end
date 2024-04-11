@@ -11,7 +11,7 @@ class Aplicacao
     private function checarChamada($rota)
     {
         if (!in_array($rota, $this->chamadas))
-        {  
+        {
             array_push($this->chamadas, [
                 'rota' => $rota,
                 'chamadas' => new ChamadaDeRotas()
@@ -33,7 +33,16 @@ class Aplicacao
     {
         $this->checarChamada($rota);
 
-        $indiceChamada = array_search('chamadas', $this->chamadas);
+        $indiceChamada = -1;
+
+        for ($indice = 0; $indice < count($this->chamadas); $indice++)
+        {
+            $chamada = $this->chamadas[$indice];
+
+            if ($chamada['rota']) {
+                $indiceChamada = $indice;
+            }
+        }
 
         $retorno = $this->chamadas[$indiceChamada];
 
@@ -86,13 +95,13 @@ class Aplicacao
                 switch ($metodo)
                 {
                     case "GET":
-                        $chamadas->get()?->invoke(null, $this->pdo);
+                        print $chamadas->get()?->invoke(null);
                         break;
                     case "POST":
-                        $chamadas->post()?->invoke(null, $this->pdo);
+                        print $chamadas->post()?->invoke(null);
                         break;
                     case "DELETE":
-                        $chamadas->delete()?->invoke(null, $this->pdo);
+                        print $chamadas->delete()?->invoke(null);
                         break;
                     default:
                         break;
