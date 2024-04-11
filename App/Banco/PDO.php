@@ -17,7 +17,7 @@ class PDO
         
         try
         {
-            $pdo = new \PDO($dsn, $usuario, $senha, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
+            self::$pdo = new \PDO($dsn, $usuario, $senha, [\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION]);
         }
         catch (PDOException $e)
         {
@@ -27,11 +27,11 @@ class PDO
     
     public static function consulta(string $query)
     {
-        return $this->pdo->query($query);
+        return self::$pdo->query($query);
     }
 
     public static function preparar(string $query, array $opcoes = [])
     {
-        return $this->pdo->prepare($query, $opcoes);
+        return self::$pdo->prepare($query, $opcoes);
     }
 }

@@ -75,6 +75,21 @@ class Aplicacao
     {
         header("Allow-Control-Access-Origin: *");
     }
+
+    private function renderizar($metodo, $chamadas)
+    {
+        switch ($metodo)
+        {
+            case "GET":
+                return json_encode($chamadas->get()?->invoke(null));
+            case "POST":
+                return json_encode($chamadas->post()?->invoke(null));
+            case "DELETE":
+                return json_encode($chamadas->delete()?->invoke(null));
+            default:
+                return json_encode();
+        }
+    }
     
     public function rodar(): void
     {
@@ -92,20 +107,7 @@ class Aplicacao
 
             if ($rota == $requisicao)
             {
-                switch ($metodo)
-                {
-                    case "GET":
-                        print $chamadas->get()?->invoke(null);
-                        break;
-                    case "POST":
-                        print $chamadas->post()?->invoke(null);
-                        break;
-                    case "DELETE":
-                        print $chamadas->delete()?->invoke(null);
-                        break;
-                    default:
-                        break;
-                }
+                print $this->renderizar($metodo, $chamadas);
                 break;
             }
         }

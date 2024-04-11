@@ -14,9 +14,12 @@ final class UsuarioControlador
 
     public static function cadastrar()
     {
-        //$consulta = PDO::preparar("SELECT * FROM usuarios WHERE email = ?");
-        //$consulta->execute(['test']);
+        $email = $_POST['email'];
+        $senha = $_POST['senha'];
 
-        return ('Isso é um cadastro');
+        $consulta = PDO::preparar("SELECT * FROM usuarios WHERE email = ?");
+        $consulta->execute([$email]);
+
+        return $consulta->fetch();
     }
 }
