@@ -2,24 +2,40 @@
 
 namespace App;
 
+use App\Rotas\ChamadaDeRotas;
+
 class Aplicacao
 {
-    private $rotas = array();
+    private $chamadas = array();
 
-    public function adicionarRota($rota, $parametros): void
+    private function checarChamada($rota)
+    {
+        if (!in_array($rota, $this->chamadas))
+        {  
+            array_push($this->chamadas, [
+                'rota' => $rota,
+                'chamada' => new ChamadaDeRotas()
+            ]);
+        }
+    }
+
+    private function chamarMetodo($parametros)
     {
         $classe = $parametros[0];
         $funcao = $parametros[1];
         
-        $construtor = new \ReflectionMethod($classe, $funcao);
-        $chamada = [$rota, $construtor];
+        $chamada = new \ReflectionMethod($classe, $funcao);
         
-        if (!in_array($chamada, $this->rotas))
-        {
-            array_push($this->rotas, [$rota, $construtor]);
-        }
+        return $chamada;
+    } 
 
-        $construtor->invoke(null);
+    public function rotaGet($rota, $parametros): void
+    {
+        $this->checarChamada($rota);
+
+        $chamada = $this->chamarMetodo($parametros);
+
+        var_dump($this->chamadas);
     }
 
     private function liberarOrigem(): void
@@ -31,8 +47,19 @@ class Aplicacao
     {
         $this->liberarOrigem();
 
+        $remoto = $_SERVER['REQUEST_METHOD'];
         $requisicao = substr($_SERVER['REQUEST_URI'], 1);
 
-
+        switch ($metodo)
+        {
+            case "GET":
+                break;
+            case "POST":
+                break;
+            case "DELETE":
+                break;
+            default:
+                break;
+        }
     }
 }
