@@ -6,6 +6,6 @@ use App\Aplicacao;
 
 $app = new Aplicacao();
 
-$app->rotaGet('test', [App\Controladores\TesteControlador::class, 'teste']);
+$app->rota('test', 'GET', [App\Controladores\TesteControlador::class, 'teste']);
 
 $app->rodar();

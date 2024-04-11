@@ -7,6 +7,6 @@ final class TesteControlador
 
     public static function teste()
     {
-        print('aaa');
+        print('aaadfjhoisdfjiojhf ');
     }
 }
