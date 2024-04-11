@@ -86,13 +86,13 @@ class Aplicacao
                 switch ($metodo)
                 {
                     case "GET":
-                        $chamadas->get()?->invoke(null);
+                        $chamadas->get()?->invoke(null, $this->pdo);
                         break;
                     case "POST":
-                        $chamadas->post()?->invoke(null);
+                        $chamadas->post()?->invoke(null, $this->pdo);
                         break;
                     case "DELETE":
-                        $chamadas->delete()?->invoke(null);
+                        $chamadas->delete()?->invoke(null, $this->pdo);
                         break;
                     default:
                         break;

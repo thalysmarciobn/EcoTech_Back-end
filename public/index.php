@@ -3,6 +3,9 @@
 require '../vendor/autoload.php';
 
 use App\Aplicacao;
+use App\Banco\PDO;
+
+PDO::conectar();
 
 $app = new Aplicacao();
 
