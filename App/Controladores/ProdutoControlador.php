@@ -19,7 +19,6 @@ final class ProdutoControlador
         
            $inserirProduto = PDO::preparar("INSERT INTO produto (nome,eco_valor,quantidade) VALUES (?,?,?)");
            $inserirProduto -> execute([$nome,$eco_valor,$quantidade]);
-            //aaaaaaa
        }
 
        $TodosProduto = PDO::preparar( "SELECT * FROM produto");
