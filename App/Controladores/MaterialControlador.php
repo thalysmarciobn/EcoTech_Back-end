@@ -23,6 +23,10 @@ final class MaterialControlador
      * @author: Thalys Márcio
      * @created: 12/04/2024
      * @summary: Adicionar material à parti de uma requisição
+     * @request: nm_material
+     * @request: qt_eco
+     * @request: id_residuo
+     * @request: sg_medida
      */
     public static function adicionarMaterial()
     {
@@ -31,15 +35,28 @@ final class MaterialControlador
         $idResiduo = $_POST['id_residuo'];
         $siglaMedida = $_POST['sg_medida'];
 
-        $consultaResiduo = PDO::preparar("SELECT id_residuo FROM residuos WHERE id_residuo = ?");
-        $consultaResiduo->execute([$idResiduo]);
+        $consultaMaterialNome = PDO::preparar("SELECT nm_material FROM materiais WHERE nm_material = ?");
+        $consultaMaterialNome->execute([$nomeMaterial]);
 
-        if (!$consultaResiduo->fetch(\PDO::FETCH_ASSOC))
+        if ($consultaMaterialNome->fetch(\PDO::FETCH_ASSOC))
         {
             return [
                 'code' => 200,
                 'data' => [
-                    'codigo' => 'residuo_existente'
+                    'codigo' => 'material_existente'
+                ]
+            ];
+        }
+
+        $consultaResiduoId = PDO::preparar("SELECT id_residuo FROM residuos WHERE id_residuo = ?");
+        $consultaResiduoId->execute([$idResiduo]);
+
+        if (!$consultaResiduoId->fetch(\PDO::FETCH_ASSOC))
+        {
+            return [
+                'code' => 200,
+                'data' => [
+                    'codigo' => 'residuo_inexistente'
                 ]
             ];
         }
@@ -64,6 +81,7 @@ final class MaterialControlador
      * @author: Thalys Márcio
      * @created: 12/04/2024
      * @summary: Remove um material à parti de uma requisição
+     * @request: nm_material
      */
     public static function removerMaterial()
     {

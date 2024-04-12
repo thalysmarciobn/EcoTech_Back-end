@@ -29,10 +29,10 @@ final class ResiduosControlador
     {
         $nomeResiduo = $_POST['nm_residuo'];
 
-        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
-        $consultaResiduos->execute([$nomeResiduo]);
+        $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
+        $consultaResiduo->execute([$nomeResiduo]);
 
-        if ($consultaResiduos->fetch(\PDO::FETCH_ASSOC))
+        if ($consultaResiduo->fetch(\PDO::FETCH_ASSOC))
         {
             return [
                 'code' => 200,
@@ -70,11 +70,11 @@ final class ResiduosControlador
         $nome = $_POST['nm_residuo'];
         $nomeNovo = $_POST['nm_novo'];
 
-        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
-        $consultaResiduos->execute([$nome]);
-        $retornoConsultaResiduos = $consultaResiduos->fetch(\PDO::FETCH_ASSOC);
+        $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
+        $consultaResiduo->execute([$nome]);
+        $retornoConsultaResiduo = $consultaResiduo->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$retornoConsultaResiduos)
+        if (!$retornoConsultaResiduo)
         {
             return [
                 'code' => 200,
@@ -84,7 +84,7 @@ final class ResiduosControlador
             ];
         }
 
-        $consultaResiduosNovoExistente = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
+        $consultaResiduosNovoExistente = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
         $consultaResiduosNovoExistente->execute([$nomeNovo]);
         $retornoConsultaResiduosNovoExistente = $consultaResiduosNovoExistente->fetch(\PDO::FETCH_ASSOC);
 
