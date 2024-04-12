@@ -6,7 +6,11 @@ use App\Banco\PDO;
 
 final class ResiduosControlador
 {
-
+    /**
+     * @author: Thalys Márcio
+     * @created: 12/04/2024
+     * @summary: Lista os um resíduos
+     */
     public static function listaResiduos()
     {
         $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
@@ -15,14 +19,18 @@ final class ResiduosControlador
         return ['code' => 200, 'data' => $consulta->fetchAll()];
     }
 
-
-
+    /**
+     * @author: Thalys Márcio
+     * @created: 12/04/2024
+     * @summary: Adiciona um resíduo à parti de uma requisição
+     * @request: nm_residuo
+     */
     public static function adicionarResiduo()
     {
-        $nome = $_POST['nm_pessoa'];
+        $nomeResiduo = $_POST['nm_residuo'];
 
         $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
-        $consultaResiduos->execute([$nome]);
+        $consultaResiduos->execute([$nomeResiduo]);
 
         if ($consultaResiduos->fetch(\PDO::FETCH_ASSOC))
         {
@@ -34,8 +42,8 @@ final class ResiduosControlador
             ];
         }
 
-        $inserirResiduo = PDO::preparar("INSERT INTO residuos (nome) VALUES (?)");
-        if ($inserirResiduo->execute([$nome]))
+        $inserirResiduo = PDO::preparar("INSERT INTO residuos (nm_residuo) VALUES (?)");
+        if ($inserirResiduo->execute([$nomeResiduo]))
         {
             return [
                 'code' => 200,
@@ -50,20 +58,42 @@ final class ResiduosControlador
         ];
     }
 
+    /**
+     * @author: Thalys Márcio
+     * @created: 12/04/2024
+     * @summary: Atualiza um resíduo à parti de uma requisição
+     * @request: nm_residuo
+     * @request: nm_novo
+     */
     public static function atualizarResiduo()
     {
-        $nome = $_POST['nm_pessoa'];
+        $nome = $_POST['nm_residuo'];
         $nomeNovo = $_POST['nm_novo'];
 
         $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
         $consultaResiduos->execute([$nome]);
+        $retornoConsultaResiduos = $consultaResiduos->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$consultaResiduos->fetch(\PDO::FETCH_ASSOC))
+        if (!$retornoConsultaResiduos)
         {
             return [
                 'code' => 200,
                 'data' => [
                     'codigo' => 'inexistente'
+                ]
+            ];
+        }
+
+        $consultaResiduosNovoExistente = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
+        $consultaResiduosNovoExistente->execute([$nomeNovo]);
+        $retornoConsultaResiduosNovoExistente = $consultaResiduosNovoExistente->fetch(\PDO::FETCH_ASSOC);
+
+        if ($retornoConsultaResiduosNovoExistente)
+        {
+            return [
+                'code' => 200,
+                'data' => [
+                    'codigo' => 'existente'
                 ]
             ];
         }
@@ -84,9 +114,15 @@ final class ResiduosControlador
         ];
     }
 
+    /**
+     * @author: Thalys Márcio
+     * @created: 12/04/2024
+     * @summary: Remove um resíduo à parti de uma requisição
+     * @request: nm_residuo
+     */
     public static function removerResiduo()
     {
-        $nome = $_POST['nm_pessoa'];
+        $nome = $_POST['nm_residuo'];
 
         $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nm_residuo = ?");
         if ($removerResiduo->execute([$nome]))

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS residuos (
 	id_residuo INT GENERATED ALWAYS AS IDENTITY,
-	nm_residuo VARCHAR(255),
+	nm_residuo VARCHAR(255) UNIQUE,
 
 	PRIMARY KEY(id_residuo)
 );

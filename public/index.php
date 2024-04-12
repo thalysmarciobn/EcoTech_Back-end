@@ -26,5 +26,6 @@ $app->rota('api/residuos/remover', 'POST', [App\Controladores\ResiduosControlado
 // Materiais
 $app->rota('api/materiais/lista', 'GET', [App\Controladores\MaterialControlador::class, 'listaMateriais']);
 $app->rota('api/materiais/adicionar', 'POST', [App\Controladores\MaterialControlador::class, 'adicionarMaterial']);
+$app->rota('api/materiais/remover', 'POST', [App\Controladores\MaterialControlador::class, 'removerMaterial']);
 
 $app->rodar();
