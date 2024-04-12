@@ -9,7 +9,7 @@ final class ResiduosControlador
 
     public static function listaResiduos()
     {
-        $consulta = PDO::preparar("SELECT idResiduo, nome FROM residuos");
+        $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
         $consulta->execute();
 
         return ['code' => 200, 'data' => $consulta->fetchAll()];
@@ -19,9 +19,9 @@ final class ResiduosControlador
 
     public static function adicionarResiduo()
     {
-        $nome = $_POST['nome'];
+        $nome = $_POST['nm_pessoa'];
 
-        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nome = ?");
+        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
         $consultaResiduos->execute([$nome]);
 
         if ($consultaResiduos->fetch(\PDO::FETCH_ASSOC))
@@ -52,10 +52,10 @@ final class ResiduosControlador
 
     public static function atualizarResiduo()
     {
-        $nome = $_POST['nome'];
-        $novoNome = $_POST['novoNome'];
+        $nome = $_POST['nm_pessoa'];
+        $nomeNovo = $_POST['nm_novo'];
 
-        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nome = ?");
+        $consultaResiduos = PDO::preparar("SELECT * FROM residuos WHERE nm_residuo = ?");
         $consultaResiduos->execute([$nome]);
 
         if (!$consultaResiduos->fetch(\PDO::FETCH_ASSOC))
@@ -68,8 +68,8 @@ final class ResiduosControlador
             ];
         }
 
-        $atualizarResiduo = PDO::preparar("UPDATE residuos SET nome = ? WHERE nome = ?");
-        if ($atualizarResiduo->execute([$novoNome, $nome]))
+        $atualizarResiduo = PDO::preparar("UPDATE residuos SET nm_residuo = ? WHERE nm_residuo = ?");
+        if ($atualizarResiduo->execute([$nomeNovo, $nome]))
         {
             return [
                 'code' => 200,
@@ -86,9 +86,9 @@ final class ResiduosControlador
 
     public static function removerResiduo()
     {
-        $nome = $_POST['nome'];
+        $nome = $_POST['nm_pessoa'];
 
-        $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nome = ?");
+        $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nm_residuo = ?");
         if ($removerResiduo->execute([$nome]))
         {
             return [

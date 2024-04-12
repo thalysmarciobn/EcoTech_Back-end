@@ -17,10 +17,14 @@ $app->rota('api/cadastrar', 'POST', [App\Controladores\UsuarioControlador::class
 
 $app ->rota('api/CadastrarProduto','POST',[App\Controladores\ProdutoControlador::class,'CadastrarProduto']);
 
-// Residuos
+// Resíduos
 $app->rota('api/residuos/lista', 'GET', [App\Controladores\ResiduosControlador::class, 'listaResiduos']);
 $app->rota('api/residuos/adicionar', 'POST', [App\Controladores\ResiduosControlador::class, 'adicionarResiduo']);
 $app->rota('api/residuos/atualizar', 'POST', [App\Controladores\ResiduosControlador::class, 'atualizarResiduo']);
 $app->rota('api/residuos/remover', 'POST', [App\Controladores\ResiduosControlador::class, 'removerResiduo']);
+
+// Materiais
+$app->rota('api/materiais/lista', 'GET', [App\Controladores\MaterialControlador::class, 'listaMateriais']);
+$app->rota('api/materiais/adicionar', 'POST', [App\Controladores\MaterialControlador::class, 'adicionarMaterial']);
 
 $app->rodar();
