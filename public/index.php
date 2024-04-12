@@ -15,4 +15,6 @@ $app->rota('api/logar','POST',[App\Controladores\UsuarioControlador::class,'loga
 
 $app->rota('api/cadastrar', 'POST', [App\Controladores\UsuarioControlador::class, 'cadastrar']);
 
+$app ->rota('api/CadastrarProduto','POST',[App\Controladores\ProdutoControlador::class,'CadastrarProduto']);
+
 $app->rodar();
