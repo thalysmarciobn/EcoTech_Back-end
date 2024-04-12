@@ -14,13 +14,55 @@ final class UsuarioControlador
      */
     public static function logar()
     {
-        $email = $_POST['email'];
-        $senha = $_POST['senha'];
+        $emailUsuario = $_POST['nm_email'];
+        $senhaUsuario = $_POST['nm_senha'];
 
-        $consultaFuncionario = PDO::preparar("SELECT * FROM usuarios WHERE email = ? and senha = ?");
-        $consultaFuncionario->execute([$email, $senha]);
+        $senhaCriptografada = md5($senhaUsuario);
 
-        return ['code' => 200, 'data' => $consultaFuncionario->fetch()];
+        $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ? and nm_senha = ?");
+        $consultaUsuario->execute([$emailUsuario, $senhaCriptografada]);
+
+        $usuario = $consultaUsuario->fetch(\PDO::FETCH_ASSOC);
+        
+        if ($usuario)
+        {
+            $idUsuario = $usuario['id_usuario'];
+
+            $umaHoraFutura = strtotime("+1 hour");
+            $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
+
+            $pseudoBytes = openssl_random_pseudo_bytes(15);
+            $chaveAleatoria = bin2hex($pseudoBytes);
+
+            $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
+            $checarSessaoLivre->execute([$idUsuario]);
+
+            if ($checarSessaoLivre->fetch(\PDO::FETCH_ASSOC))
+            {
+                // update
+                return [
+                    'code' => 200,
+                    'data' => [
+                        'codigo' => 'logado',
+                        'chave' => $chaveAleatoria
+                    ]
+                ];
+            }
+
+            $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
+            if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
+            {
+                return [
+                    'code' => 200,
+                    'data' => [
+                        'codigo' => 'logado',
+                        'chave' => $chaveAleatoria
+                    ]
+                ];
+            }
+        }
+
+        return ['code' => 500];
     }
 
     /**
@@ -59,7 +101,10 @@ final class UsuarioControlador
             PDO::iniciarTransacao();
             
             $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
-            if ($inserirUsuario->execute([$emailUsuario, $nomeUsuaurio, $senhaUsuario, 0, 0]))
+            
+            $senhaCriptografada = md5($senhaUsuario);
+            
+            if ($inserirUsuario->execute([$emailUsuario, $nomeUsuaurio, $senhaCriptografada, 0, 0]))
             {
                 $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa) VALUES (?, ?, ?, ?, ?, ?)");
                 

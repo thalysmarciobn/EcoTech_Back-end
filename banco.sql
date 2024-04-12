@@ -93,9 +93,9 @@ CREATE TABLE IF NOT EXISTS recebimentos (
 CREATE TABLE IF NOT EXISTS sessoes (
 	id_sessao INT GENERATED ALWAYS AS IDENTITY,
 	id_usuario INT,
-	dt_expiracao DATETIME,
+	dt_expiracao TIMESTAMP,
 	nm_chave VARCHAR(255),
 	
 	PRIMARY KEY(id_sessao),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
-)
+);
