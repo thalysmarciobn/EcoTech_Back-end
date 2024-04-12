@@ -4,12 +4,13 @@ namespace App\Controladores;
 
 use App\Banco\PDO;
 
-final class MaterialControlador
+final class MateriaisControlador
 {
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
      * @summary: Retornar a lista de materiais
+     * @roles: Administrador, Funcionário, Usuário
      */
     public static function listaMateriais()
     {
@@ -22,16 +23,17 @@ final class MaterialControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
-     * @summary: Adicionar material à parti de uma requisição
+     * @summary: Adicionar material a partir de uma requisição
      * @request: nm_material
-     * @request: qt_eco
+     * @request: vl_eco
      * @request: id_residuo
      * @request: sg_medida
+     * @roles: Administrador
      */
     public static function adicionarMaterial()
     {
         $nomeMaterial = $_POST['nm_material'];
-        $quantidadeEco = $_POST['qt_eco'];
+        $valorEco = $_POST['vl_eco'];
         $idResiduo = $_POST['id_residuo'];
         $siglaMedida = $_POST['sg_medida'];
 
@@ -61,9 +63,9 @@ final class MaterialControlador
             ];
         }
 
-        $inserirMaterial = PDO::preparar("INSERT INTO materiais (nm_material, qt_eco, id_residuo, sg_medida)
+        $inserirMaterial = PDO::preparar("INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida)
             VALUES (?, ?, ?, ?)");
-        if ($inserirMaterial->execute([$nomeMaterial, $quantidadeEco, $idResiduo, $siglaMedida]))
+        if ($inserirMaterial->execute([$nomeMaterial, $valorEco, $idResiduo, $siglaMedida]))
         {
             return [
                 'code' => 200,
@@ -80,8 +82,9 @@ final class MaterialControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
-     * @summary: Remove um material à parti de uma requisição
+     * @summary: Remove um material a partir de uma requisição
      * @request: nm_material
+     * @roles: Administrador
      */
     public static function removerMaterial()
     {

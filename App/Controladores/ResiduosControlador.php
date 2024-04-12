@@ -10,6 +10,7 @@ final class ResiduosControlador
      * @author: Thalys Márcio
      * @created: 12/04/2024
      * @summary: Lista os um resíduos
+     * @roles: Administrador, Funcionário, Usuário
      */
     public static function listaResiduos()
     {
@@ -22,8 +23,9 @@ final class ResiduosControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
-     * @summary: Adiciona um resíduo à parti de uma requisição
+     * @summary: Adiciona um resíduo a partir de uma requisição
      * @request: nm_residuo
+     * @roles: Administrador
      */
     public static function adicionarResiduo()
     {
@@ -61,9 +63,10 @@ final class ResiduosControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
-     * @summary: Atualiza um resíduo à parti de uma requisição
+     * @summary: Atualiza um resíduo a partir de uma requisição
      * @request: nm_residuo
      * @request: nm_novo
+     * @roles: Administrador
      */
     public static function atualizarResiduo()
     {
@@ -117,8 +120,9 @@ final class ResiduosControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
-     * @summary: Remove um resíduo à parti de uma requisição
+     * @summary: Remove um resíduo a partir de uma requisição
      * @request: nm_residuo
+     * @roles: Administrador
      */
     public static function removerResiduo()
     {
