@@ -14,7 +14,7 @@ final class ProdutosControlador
      */
     public static function listaProdutos()
     {
-        $consulta = PDO::preparar( "SELECT * FROM produtos");
+        $consulta = PDO::preparar("SELECT * FROM produtos");
         $consulta->execute();
 
         return ['code' => 200, 'data' => $consulta->fetchAll()];

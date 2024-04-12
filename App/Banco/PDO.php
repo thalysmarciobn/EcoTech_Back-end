@@ -24,6 +24,26 @@ class PDO
             die($e->getMessage());
         }
     }
+
+    public static function iniciarTransacao(): void
+    {
+        self::$pdo->beginTransaction();
+    }
+
+    public static function entregarTransacao(): void
+    {
+        self::$pdo->commit();
+    }
+
+    public static function reverterTransacao(): void
+    {
+        self::$pdo->rollBack();
+    }
+
+    public static function ultimaIdInserida()
+    {
+        return self::$pdo->lastInsertId();
+    }
     
     public static function consulta(string $query)
     {

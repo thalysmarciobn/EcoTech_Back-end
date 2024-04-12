@@ -40,6 +40,19 @@ INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VAL
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('funcionario@teste.com', 'Funcionário', '827ccb0eea8a706c4c34a16891f84e7b', 0, 1);
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('admin@teste.com', 'Administrador', '827ccb0eea8a706c4c34a16891f84e7b', 0, 2);
 
+CREATE TABLE IF NOT EXISTS usuarios_enderecos (
+	id_endereco INT GENERATED ALWAYS AS IDENTITY,
+	id_usuario INT,
+	nm_rua VARCHAR(255),
+	nm_bairro VARCHAR(255),
+	nm_cidade VARCHAR(255),
+	nm_estado VARCHAR(255),
+	nu_casa INT,
+
+	PRIMARY KEY(id_endereco),
+	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
+);
+
 CREATE TABLE IF NOT EXISTS usuarios_compras (
 	id_compra INT GENERATED ALWAYS AS IDENTITY,
 	id_usuario INT,
