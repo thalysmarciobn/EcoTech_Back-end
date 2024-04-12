@@ -14,7 +14,7 @@ final class MateriaisControlador
      */
     public static function listaMateriais()
     {
-        $consulta = PDO::preparar("SELECT id_material, nm_material, qt_eco, id_residuo, sg_medida FROM materiais");
+        $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais");
         $consulta->execute();
 
         return ['code' => 200, 'data' => $consulta->fetchAll()];
