@@ -8,7 +8,7 @@ class PDO
 
     public static function conectar()
     {
-        $servidor = 'localhost';
+        $servidor = '192.168.0.135';
         $banco = 'eco';
         $usuario = 'postgres';
         $senha = '123456';

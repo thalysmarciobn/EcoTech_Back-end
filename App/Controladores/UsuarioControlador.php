@@ -9,7 +9,15 @@ final class UsuarioControlador
 
     public static function logar()
     {
-        print('aaadfjhoisdfjiojhf ');
+        $email = $_POST['email'];
+        $senha = $_POST['senha'];
+
+        $consultaFuncionario = PDO::preparar("SELECT * FROM funcionario WHERE email = ? and senha = ?");
+        $consultaFuncionario->execute([$email,$senha]);
+
+        return $consultaFuncionario->fetch();
+
+
     }
 
     public static function cadastrar()
