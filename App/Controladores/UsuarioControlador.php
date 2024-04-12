@@ -27,16 +27,66 @@ final class UsuarioControlador
      * @author: Thalys Márcio
      * @created: 12/04/2024
      * @summary: Requisição de cadastro de usuário
-     * @roles: Administrador, Funcionário
+     * @roles:
      */
     public static function cadastrar()
     {
-        $email = $_POST['email'];
-        $senha = $_POST['senha'];
+        $emailUsuario = $_POST['nm_email'];
+        $nomeUsuaurio = $_POST['nm_usuario'];
+        $senhaUsuario = $_POST['nm_senha'];
+        
+        $nomeRua = $_POST['nm_rua'];
+        $nomeBairro = $_POST['nm_bairro'];
+        $nomeCidade = $_POST['nm_cidade'];
+        $nomeEstado = $_POST['nm_estado'];
+        $numeroCasa = $_POST['nu_casa'];
 
-        $consulta = PDO::preparar("SELECT * FROM usuarios WHERE email = ?");
-        $consulta->execute([$email]);
+        $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ?");
+        $consultaUsuario->execute([$emailUsuario]);
 
-        return ['code' => 200, 'data' => $consulta->fetch()];
+        if ($consultaUsuario->fetch(\PDO::FETCH_ASSOC))
+        {
+            return [
+                'code' => 200,
+                'data' => [
+                    'codigo' => 'usuario_existente'
+                ]
+            ];
+        }
+
+        try
+        {
+            PDO::iniciarTransacao();
+            
+            $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
+            if ($inserirUsuario->execute([$emailUsuario, $nomeUsuaurio, $senhaUsuario, 0, 0]))
+            {
+                $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa) VALUES (?, ?, ?, ?, ?, ?)");
+                
+                $idUsuario = PDO::ultimaIdInserida();
+
+                if (!$inserirUsuarioEndereco->execute([$idUsuario, $nomeRua, $nomeBairro, $nomeCidade, $nomeEstado, $numeroCasa]))
+                {
+                    PDO::reverterTransacao();
+
+                    return ['code' => 500];
+                }
+
+                PDO::entregarTransacao();
+                return [
+                    'code' => 200,
+                    'data' => [
+                        'codigo' => 'inserido'
+                    ]
+                ];
+            }
+            PDO::reverterTransacao();
+        }
+        catch (\Exception $e)
+        {
+            PDO::reverterTransacao();
+        }
+
+        return ['code' => 500];
     }
 }
