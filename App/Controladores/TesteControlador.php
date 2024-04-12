@@ -7,6 +7,6 @@ final class TesteControlador
 
     public static function teste()
     {
-        return ('Isso é um teste');
+        return ['code' => 200, 'data' => ['data' => 'Isso é um teste']];
     }
 }

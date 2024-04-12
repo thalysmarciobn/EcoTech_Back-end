@@ -15,7 +15,7 @@ final class UsuarioControlador
         $consultaFuncionario = PDO::preparar("SELECT * FROM funcionario WHERE email = ? and senha = ?");
         $consultaFuncionario->execute([$email,$senha]);
 
-        return $consultaFuncionario->fetch();
+        return ['code' => 200, 'data' => $consultaFuncionario->fetch()];
 
 
     }
@@ -28,6 +28,6 @@ final class UsuarioControlador
         $consulta = PDO::preparar("SELECT * FROM usuarios WHERE email = ?");
         $consulta->execute([$email]);
 
-        return $consulta->fetch();
+        return ['code' => 200, 'data' => $consulta->fetch()];
     }
 }

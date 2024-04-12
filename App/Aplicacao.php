@@ -81,14 +81,21 @@ class Aplicacao
         switch ($metodo)
         {
             case "GET":
-                return json_encode($chamadas->get()?->invoke(null));
-            case "POST":
-                return json_encode($chamadas->post()?->invoke(null));
-            case "DELETE":
-                return json_encode($chamadas->delete()?->invoke(null));
             default:
-                return json_encode();
+                return $this->retorno($chamadas->get()?->invoke(null));
+            case "POST":
+                return $this->retorno($chamadas->post()?->invoke(null));
+            case "PUT":
+                return $this->retorno($chamadas->put()?->invoke(null));
+            case "DELETE":
+                return $this->retorno($chamadas->delete()?->invoke(null));
         }
+    }
+
+    private function retorno($objeto)
+    {
+        http_response_code($objeto['code']);
+        return json_encode($objeto['data']);
     }
     
     public function rodar(): void
