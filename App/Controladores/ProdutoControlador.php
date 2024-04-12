@@ -10,19 +10,27 @@ final class ProdutoControlador
        $nome = $_POST['nome'];
        $eco_valor = $_POST['eco_valor'];
        $quantidade = $_POST['quantidade'];
-        var_dump($_POST);
        $consultaProduto = PDO::preparar( "SELECT * FROM produto WHERE nome = ?");
        $consultaProduto -> execute([$nome]);
        if($consultaProduto->rowCount() != 0){
-        echo "Produto já existe no banco";
+        return [
+            'code' => 200,
+            'data' => [
+                'codigo' => 'Ja existe'
+            ]
+        ];
        }else{
         
            $inserirProduto = PDO::preparar("INSERT INTO produto (nome,eco_valor,quantidade) VALUES (?,?,?)");
            $inserirProduto -> execute([$nome,$eco_valor,$quantidade]);
+           return [
+            'code' => 200,
+            'data' => [
+                'codigo' => 'inserido'
+            ]
+        ];
+
        }
 
-       $TodosProduto = PDO::preparar( "SELECT * FROM produto");
-       $TodosProduto -> execute();
-       return ['code' => 200, 'data' => $TodosProduto->fetchAll()];
     }
 }
