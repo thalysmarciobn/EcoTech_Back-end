@@ -16,6 +16,7 @@ $app->rota('api/logar','POST',[App\Controladores\UsuarioControlador::class,'loga
 $app->rota('api/cadastrar', 'POST', [App\Controladores\UsuarioControlador::class, 'cadastrar']);
 
 $app ->rota('api/CadastrarProduto','POST',[App\Controladores\ProdutoControlador::class,'CadastrarProduto']);
+$app ->rota('api/ListaProduto','GET',[App\Controladores\ProdutoControlador::class,'ListaProduto']);
 
 // Residuos
 $app->rota('api/residuos/lista', 'GET', [App\Controladores\ResiduosControlador::class, 'listaResiduos']);
