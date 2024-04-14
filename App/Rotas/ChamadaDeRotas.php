@@ -4,6 +4,7 @@ namespace App\Rotas;
 
 class ChamadaDeRotas
 {
+
     private $get = NULL;
 
     private $post = NULL;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Banco;
+namespace Banco;
 
 use PDO as ConexaoPDO;
 use PDOException;

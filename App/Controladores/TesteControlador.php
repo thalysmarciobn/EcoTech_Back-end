@@ -2,11 +2,13 @@
 
 namespace App\Controladores;
 
-final class TesteControlador
-{
+use App\BaseControlador;
 
-    public static function teste()
+final class TesteControlador extends BaseControlador
+{
+    public function teste(): array
     {
-        return ['code' => 200, 'data' => ['data' => 'Isso é um teste']];
+        $this->receptaculo->autenticador->chaveAleatoria(10);
+        return $this->responder(['text' => 'Isso é um teste']);
     }
 }
