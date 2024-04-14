@@ -2,7 +2,7 @@
 
 namespace App;
 
-use App\Rotas\ChamadaDeRotas;
+use App\Rotas\Chamadas;
 use App\Intermediario\Receptaculo;
 use ReflectionMethod;
 use Exception;
@@ -11,7 +11,18 @@ class Aplicacao
 {
     private array $controladores = [];
     private array $chamadas = [];
+    private array $metodosValidosDeChamadas = [
+        "GET" => "get",
+        "POST" => "post",
+        "PUT" => "put",
+        "DELETE" => "delete"
+    ];
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Inicia o processo de roteamento com os dados de rota, método HTTP e parâmetros
+     */
     public function rota($rota, $metodo, $parametros): void
     {
         [$classe, $funcao] = $parametros;
@@ -25,6 +36,11 @@ class Aplicacao
         $this->processarMetodo($metodo, $retorno, $classeInstanciada, $funcao);
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Verifica a nescessidade de adicionar uma classe instanciada
+     */
     private function verificarEAdicionarClasse(string $classe): void
     {
         $classeExistente = array_filter($this->controladores, function($controlador) use ($classe) {
@@ -40,16 +56,26 @@ class Aplicacao
         }
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Verifica a nescessidade de adicionar uma Chamada baseada na rota
+     */
     private function verificarEAdicionarChamada(string $rota): void
     {
         if (!in_array($rota, array_column($this->chamadas, 'rota'))) {
             $this->chamadas[] = [
                 'rota' => $rota,
-                'chamadas' => new ChamadaDeRotas()
+                'chamadas' => new Chamadas()
             ];
         }
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Obtem uma classe instanciada dos Controladores
+     */
     private function obterClasseInstanciada(string $classe): object
     {
         $indiceControlador = array_search($classe, array_column($this->controladores, 'nome'));
@@ -61,6 +87,11 @@ class Aplicacao
         return $this->controladores[$indiceControlador]['classe'];
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Retorna uma Chamada baseada na rota acessada
+     */
     private function obterRetornoChamada(string $rota): object
     {
         $indiceChamada = array_search($rota, array_column($this->chamadas, 'rota'));
@@ -72,43 +103,42 @@ class Aplicacao
         return $this->chamadas[$indiceChamada]['chamadas'];
     }
     
-    private function processarMetodo(string $metodo, ChamadaDeRotas $retorno, object $classeInstanciada, string $funcao): void
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Processa o método nas Chamadas para registrar qual método HTTP ele é processado
+     */
+    private function processarMetodo(string $metodo, Chamadas $retorno, object $classeInstanciada, string $funcao): void
     {
-        $metodosValidos = [
-            "GET" => "atualizarGet",
-            "POST" => "atualizarPost",
-            "PUT" => "atualizarPut",
-            "DELETE" => "atualizarDelete"
-        ];
-
-        if (isset($metodosValidos[$metodo])) {
-            $funcaoMetodo = $metodosValidos[$metodo];
-            if (!$retorno->$funcaoMetodo(['classe' => $classeInstanciada, 'metodo' => $funcao])) {
-                throw new Exception("Rota já existente.", 1);
-            }
+        if (isset($this->metodosValidosDeChamadas[$metodo])) {
+            $funcaoMetodo = $this->metodosValidosDeChamadas[$metodo];
+            $retorno->$funcaoMetodo = ['classe' => $classeInstanciada, 'metodo' => $funcao];
         } else {
             throw new Exception("Método HTTP inválido.", 1);
         }
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Libera a origem CORS
+     */
     private function liberarOrigem(): void
     {
         header("Access-Control-Allow-Origin: *");
     }
-    
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Renderiza um JSON a partir de uma busca de método buscado na lista de Controladores
+     */
     private function renderizar($metodo, $chamadas): string
     {
-        $metodosValidos = [
-            "GET" => "get",
-            "POST" => "post",
-            "PUT" => "put",
-            "DELETE" => "delete"
-        ];
-
-        if (isset($metodosValidos[$metodo]))
+        if (isset($this->metodosValidosDeChamadas[$metodo]))
         {
-            $retornoMetodo = $metodosValidos[$metodo];
-            $retornoRota = $chamadas->$retornoMetodo();
+            $retornoMetodo = $this->metodosValidosDeChamadas[$metodo];
+            $retornoRota = $chamadas->$retornoMetodo;
 
             $classeInstanciada = $retornoRota['classe'];
             $metodoInstanciado = $retornoRota['metodo'];
@@ -117,7 +147,7 @@ class Aplicacao
 
             if ($funcaoMetodo == NULL)
             {
-                exit('Metódo não pode ser instanciado: ' . $metodoInstanciado);
+                exit('Método não pode ser instanciado: ' . $metodoInstanciado);
             }
             
             return $this->retorno($funcaoMetodo->invoke($classeInstanciada));
@@ -126,11 +156,21 @@ class Aplicacao
         throw new Exception("Método HTTP inválido.", 1);
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Cria um retorno em JSON para o navegador.
+     */
     private function retorno($objeto): string
     {
         return json_encode($objeto);
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Busca uma chamada baseada na rota
+     */
     private function buscarChamada($rota): ?array
     {
         foreach ($this->chamadas as $chamada) {
@@ -141,6 +181,11 @@ class Aplicacao
         return null;
     }
     
+    /**
+     * @author: Thalys Márcio
+     * @created: 11/04/2024
+     * @summary: Executa a chamada buscada para renderizar
+     */
     public function rodar(): void
     {
         $this->liberarOrigem();
