@@ -2,9 +2,10 @@
 
 namespace App\Controladores;
 
-use App\Banco\PDO;
+use App\BaseControlador;
+use Banco\PDO;
 
-final class MateriaisControlador
+final class MateriaisControlador extends BaseControlador
 {
     /**
      * @author: Thalys Márcio
@@ -12,12 +13,12 @@ final class MateriaisControlador
      * @summary: Retornar a lista de materiais
      * @roles: Administrador, Funcionário, Usuário
      */
-    public static function listaMateriais()
+    public function listaMateriais(): array
     {
         $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais");
         $consulta->execute();
 
-        return ['code' => 200, 'data' => $consulta->fetchAll()];
+        return $this->responder($consulta->fetchAll());
     }
 
     /**
@@ -30,24 +31,19 @@ final class MateriaisControlador
      * @request: sg_medida
      * @roles: Administrador
      */
-    public static function adicionarMaterial()
+    public function adicionarMaterial(): array
     {
-        $nomeMaterial = $_POST['nm_material'];
-        $valorEco = $_POST['vl_eco'];
-        $idResiduo = $_POST['id_residuo'];
-        $siglaMedida = $_POST['sg_medida'];
+        $nomeMaterial = $this->post('nm_material');
+        $valorEco = $this->post('vl_eco');
+        $idResiduo = $this->post('id_residuo');
+        $siglaMedida = $this->post('sg_medida');
 
         $consultaMaterialNome = PDO::preparar("SELECT nm_material FROM materiais WHERE nm_material = ?");
         $consultaMaterialNome->execute([$nomeMaterial]);
 
         if ($consultaMaterialNome->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'material_existente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'material_existente']);
         }
 
         $consultaResiduoId = PDO::preparar("SELECT id_residuo FROM residuos WHERE id_residuo = ?");
@@ -55,28 +51,16 @@ final class MateriaisControlador
 
         if (!$consultaResiduoId->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'residuo_inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'residuo_inexistente']);
         }
 
         $inserirMaterial = PDO::preparar("INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida)
             VALUES (?, ?, ?, ?)");
         if ($inserirMaterial->execute([$nomeMaterial, $valorEco, $idResiduo, $siglaMedida]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'inserido'
-                ]
-            ];
+            return $this->responder(['codigo' => 'inserido']);
         }
-        return ['code' => 200, 'data' => [
-            'codigo' => 'falha'
-        ]];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -86,26 +70,16 @@ final class MateriaisControlador
      * @request: nm_material
      * @roles: Administrador
      */
-    public static function removerMaterial()
+    public function removerMaterial(): array
     {
-        $nomeMaterial = $_POST['nm_material'];
+        $nomeMaterial = $this->post('nm_material');
 
         $removerMaterial = PDO::preparar("DELETE FROM materiais WHERE nm_material = ?");
         if ($removerMaterial->execute([$nomeMaterial]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => $removerMaterial->rowCount()> 0 ? 'removido' : 'inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => $removerMaterial->rowCount()> 0 ? 'removido' : 'inexistente']);
         }
 
-        return [
-            'code' => 200,
-            'data' => [
-                'codigo' => 'inexistente'
-            ]
-        ];
+        return $this->responder(['codigo' => 'inexistente']);
     }
 }

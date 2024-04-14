@@ -2,9 +2,10 @@
 
 namespace App\Controladores;
 
-use App\Banco\PDO;
+use App\BaseControlador;
+use Banco\PDO;
 
-final class ResiduosControlador
+final class ResiduosControlador extends BaseControlador
 {
     /**
      * @author: Thalys Márcio
@@ -12,12 +13,12 @@ final class ResiduosControlador
      * @summary: Lista os um resíduos
      * @roles: Administrador, Funcionário, Usuário
      */
-    public static function listaResiduos()
+    public function listaResiduos(): array
     {
         $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
         $consulta->execute();
 
-        return ['code' => 200, 'data' => $consulta->fetchAll()];
+        return $this->responder($consulta->fetchAll());
     }
 
     /**
@@ -27,37 +28,25 @@ final class ResiduosControlador
      * @request: nm_residuo
      * @roles: Administrador
      */
-    public static function adicionarResiduo()
+    public function adicionarResiduo(): array
     {
-        $nomeResiduo = $_POST['nm_residuo'];
+        $nomeResiduo = $this->post('nm_residuo');
 
         $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
         $consultaResiduo->execute([$nomeResiduo]);
 
         if ($consultaResiduo->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'existente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'existente']);
         }
 
         $inserirResiduo = PDO::preparar("INSERT INTO residuos (nm_residuo) VALUES (?)");
         if ($inserirResiduo->execute([$nomeResiduo]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'inserido'
-                ]
-            ];
+            return $this->responder(['codigo' => 'inserido']);
         }
 
-        return [
-            'code' => 500
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -68,10 +57,10 @@ final class ResiduosControlador
      * @request: nm_novo
      * @roles: Administrador
      */
-    public static function atualizarResiduo()
+    public function atualizarResiduo(): array
     {
-        $nome = $_POST['nm_residuo'];
-        $nomeNovo = $_POST['nm_novo'];
+        $nome = $this->post('nm_residuo');
+        $nomeNovo = $this->post('nm_novo');
 
         $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
         $consultaResiduo->execute([$nome]);
@@ -79,12 +68,7 @@ final class ResiduosControlador
 
         if (!$retornoConsultaResiduo)
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'inexistente']);
         }
 
         $consultaResiduosNovoExistente = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
@@ -93,28 +77,16 @@ final class ResiduosControlador
 
         if ($retornoConsultaResiduosNovoExistente)
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'existente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'existente']);
         }
 
         $atualizarResiduo = PDO::preparar("UPDATE residuos SET nm_residuo = ? WHERE nm_residuo = ?");
         if ($atualizarResiduo->execute([$nomeNovo, $nome]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'atualizado'
-                ]
-            ];
+            return $this->responder(['codigo' => 'atualizado']);
         }
 
-        return [
-            'code' => 500
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -124,26 +96,16 @@ final class ResiduosControlador
      * @request: nm_residuo
      * @roles: Administrador
      */
-    public static function removerResiduo()
+    public function removerResiduo(): array
     {
-        $nome = $_POST['nm_residuo'];
+        $nome = $this->post('nm_residuo');
 
         $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nm_residuo = ?");
         if ($removerResiduo->execute([$nome]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => $removerResiduo->rowCount()> 0 ? 'removido' : 'inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => $removerResiduo->rowCount()> 0 ? 'removido' : 'inexistente']);
         }
 
-        return [
-            'code' => 200,
-            'data' => [
-                'codigo' => 'inexistente'
-            ]
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 }

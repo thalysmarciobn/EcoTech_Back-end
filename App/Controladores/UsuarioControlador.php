@@ -2,9 +2,10 @@
 
 namespace App\Controladores;
 
-use App\Banco\PDO;
+use App\BaseControlador;
+use Banco\PDO;
 
-final class UsuarioControlador
+final class UsuarioControlador extends BaseControlador
 {
     /**
      * @author: Thalys Márcio
@@ -12,10 +13,10 @@ final class UsuarioControlador
      * @summary: Requisição de logar e criação de sessão
      * @roles:
      */
-    public static function logar()
+    public function logar(): array
     {
-        $emailUsuario = $_POST['nm_email'];
-        $senhaUsuario = $_POST['nm_senha'];
+        $emailUsuario = $this->post('nm_email');
+        $senhaUsuario = $this->post('nm_senha');
 
         $senhaCriptografada = md5($senhaUsuario);
 
@@ -27,42 +28,34 @@ final class UsuarioControlador
         if ($usuario)
         {
             $idUsuario = $usuario['id_usuario'];
+            $nomeUsuario = $usuario['nm_usuario'];
+            $cargoUsuario = $usuario['nu_cargo'];
 
             $umaHoraFutura = strtotime("+1 hour");
             $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
-
-            $pseudoBytes = openssl_random_pseudo_bytes(15);
-            $chaveAleatoria = bin2hex($pseudoBytes);
+            
+            $chaveAleatoria = $this->receptaculo->autenticador->gerarChave();
+            $chave = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, $cargoUsuario, $nomeUsuario, $emailUsuario, $chaveAleatoria);
 
             $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
             $checarSessaoLivre->execute([$idUsuario]);
 
             if ($checarSessaoLivre->fetch(\PDO::FETCH_ASSOC))
             {
-                // update
-                return [
-                    'code' => 200,
-                    'data' => [
-                        'codigo' => 'logado',
-                        'chave' => $chaveAleatoria
-                    ]
-                ];
+                $atualizarSessao = PDO::preparar("UPDATE sessoes SET nm_chave = ?, dt_expiracao = ? WHERE id_usuario = ?");
+                $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
+
+                return $this->responder(['codigo' => 'logado', 'chave' => $chave]);
             }
 
             $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
             if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
             {
-                return [
-                    'code' => 200,
-                    'data' => [
-                        'codigo' => 'logado',
-                        'chave' => $chaveAleatoria
-                    ]
-                ];
+                return $this->responder(['codigo' => 'logado']);
             }
         }
 
-        return ['code' => 500];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -71,29 +64,24 @@ final class UsuarioControlador
      * @summary: Requisição de cadastro de usuário
      * @roles:
      */
-    public static function cadastrar()
+    public function cadastrar(): array
     {
-        $emailUsuario = $_POST['nm_email'];
-        $nomeUsuaurio = $_POST['nm_usuario'];
-        $senhaUsuario = $_POST['nm_senha'];
+        $emailUsuario = $this->post('nm_email');
+        $nomeUsuaurio = $this->post('nm_usuario');
+        $senhaUsuario = $this->post('nm_senha');
         
-        $nomeRua = $_POST['nm_rua'];
-        $nomeBairro = $_POST['nm_bairro'];
-        $nomeCidade = $_POST['nm_cidade'];
-        $nomeEstado = $_POST['nm_estado'];
-        $numeroCasa = $_POST['nu_casa'];
+        $nomeRua = $this->post('nm_rua');
+        $nomeBairro = $this->post('nm_bairro');
+        $nomeCidade = $this->post('nm_cidade');
+        $nomeEstado = $this->post('nm_estado');
+        $numeroCasa = $this->post('nu_casa');
 
         $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ?");
         $consultaUsuario->execute([$emailUsuario]);
 
         if ($consultaUsuario->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'usuario_existente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'usuario_existente']);
         }
 
         try
@@ -114,16 +102,11 @@ final class UsuarioControlador
                 {
                     PDO::reverterTransacao();
 
-                    return ['code' => 500];
+                    return $this->responder(['codigo' => 'falha']);
                 }
 
                 PDO::entregarTransacao();
-                return [
-                    'code' => 200,
-                    'data' => [
-                        'codigo' => 'inserido'
-                    ]
-                ];
+                return $this->responder(['codigo' => 'inserido']);
             }
             PDO::reverterTransacao();
         }
@@ -132,6 +115,6 @@ final class UsuarioControlador
             PDO::reverterTransacao();
         }
 
-        return ['code' => 500];
+        return $this->responder(['codigo' => 'falha']);
     }
 }

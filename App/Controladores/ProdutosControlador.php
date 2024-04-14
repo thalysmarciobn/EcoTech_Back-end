@@ -2,9 +2,10 @@
 
 namespace App\Controladores;
 
-use App\Banco\PDO;
+use App\BaseControlador;
+use Banco\PDO;
 
-final class ProdutosControlador
+final class ProdutosControlador extends BaseControlador
 {
     /**
      * @author: Thalys Márcio
@@ -12,12 +13,12 @@ final class ProdutosControlador
      * @summary: Retornar a lista de produtos
      * @roles: Administrador, Funcionário, Usuário
      */
-    public static function listaProdutos()
+    public function listaProdutos(): array
     {
         $consulta = PDO::preparar("SELECT * FROM produtos");
         $consulta->execute();
 
-        return ['code' => 200, 'data' => $consulta->fetchAll()];
+        return $this->responder($consulta->fetchAll());
     }
 
     /**
@@ -29,39 +30,27 @@ final class ProdutosControlador
      * @request: vl_eco
      * @roles: Administrador
      */
-    public static function adicionarProduto()
+    public function adicionarProduto(): array
     {
-        $nomeProduto = $_POST['nm_produto'];
-        $descricaoProduto = $_POST['ds_produto'];
-        $valorEco = $_POST['vl_eco'];
+        $nomeProduto = $this->post('nm_produto');
+        $descricaoProduto = $this->post('ds_produto');
+        $valorEco = $this->post('vl_eco');
 
         $consultaProduto = PDO::preparar("SELECT nm_produto FROM produtos WHERE nm_produto = ?");
         $consultaProduto->execute([$nomeProduto]);
 
         if ($consultaProduto->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'existente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'existente']);
         }
 
         $inserirProduto = PDO::preparar("INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES (?, ?, ?)");
         if ($inserirProduto->execute([$nomeProduto, $descricaoProduto, $valorEco]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'inserido'
-                ]
-            ];
+            return $this->responder(['codigo' => 'inserido']);
         }
 
-        return [
-            'code' => 500
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -74,40 +63,28 @@ final class ProdutosControlador
      * @request: vl_eco
      * @roles: Administrador
      */
-    public static function atualizarProduto()
+    public function atualizarProduto(): array
     {
-        $idProduto = $_POST['id_produto'];
-        $nomeProduto = $_POST['nm_produto'];
-        $descricaoProduto = $_POST['ds_produto'];
-        $valorEco = $_POST['vl_eco'];
+        $idProduto = $this->post('id_produto');
+        $nomeProduto = $this->post('nm_produto');
+        $descricaoProduto = $this->post('ds_produto');
+        $valorEco = $this->post('vl_eco');
 
         $consultaProduto = PDO::preparar("SELECT id_produto FROM produtos WHERE id_produto = ?");
         $consultaProduto->execute([$idProduto]);
 
         if (!$consultaProduto->fetch(\PDO::FETCH_ASSOC))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => 'inexistente']);
         }
         
         $atualizarProduto = PDO::preparar("UPDATE produtos SET nm_produto = ?, ds_produto = ?, vl_eco = ? WHERE id_produto = ?");
         if ($atualizarProduto->execute([$nomeProduto, $descricaoProduto, $quantidadeEco, $idProduto]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => 'atualizado'
-                ]
-            ];
+            return $this->responder(['codigo' => 'atualizado']);
         }
 
-        return [
-            'code' => 500
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 
     /**
@@ -117,23 +94,16 @@ final class ProdutosControlador
      * @request: id_produto
      * @roles: Administrador
      */
-    public static function removerProduto()
+    public function removerProduto(): array
     {
-        $idProduto = $_POST['id_produto'];
+        $idProduto = $this->post('id_produto');
 
         $removerProduto = PDO::preparar("DELETE FROM produtos WHERE id_produto = ?");
         if ($removerProduto->execute([$idProduto]))
         {
-            return [
-                'code' => 200,
-                'data' => [
-                    'codigo' => $removerProduto->rowCount()> 0 ? 'removido' : 'inexistente'
-                ]
-            ];
+            return $this->responder(['codigo' => $removerProduto->rowCount()> 0 ? 'removido' : 'inexistente']);
         }
 
-        return [
-            'code' => 500
-        ];
+        return $this->responder(['codigo' => 'falha']);
     }
 }

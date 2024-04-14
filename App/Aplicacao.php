@@ -17,6 +17,13 @@ class Aplicacao
         "PUT" => "put",
         "DELETE" => "delete"
     ];
+
+    private ?Receptaculo $receptaculo = NULL;
+
+    public function __construct()
+    {
+        $this->receptaculo = new Receptaculo();
+    }
     
     /**
      * @author: Thalys Márcio
@@ -48,7 +55,7 @@ class Aplicacao
         });
 
         if (empty($classeExistente)) {
-            $classeInstanciada = new $classe(new Receptaculo());
+            $classeInstanciada = new $classe($this->receptaculo);
             $this->controladores[] = [
                 'nome' => get_class($classeInstanciada),
                 'classe' => $classeInstanciada
@@ -163,7 +170,7 @@ class Aplicacao
      */
     private function retorno($objeto): string
     {
-        return json_encode($objeto);
+        return json_encode($objeto, JSON_THROW_ON_ERROR);
     }
     
     /**

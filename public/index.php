@@ -3,14 +3,11 @@
 require '../vendor/autoload.php';
 
 use App\Aplicacao;
-use App\Banco\PDO;
 use App\Controladores\TesteControlador;
 use App\Controladores\UsuarioControlador;
 use App\Controladores\ProdutosControlador;
 use App\Controladores\ResiduosControlador;
 use App\Controladores\MateriaisControlador;
-
-//PDO::conectar();
 
 $app = new Aplicacao();
 
@@ -20,7 +17,8 @@ define('RESIDUOS', API . 'residuos/');
 define('MATERIAIS', API . 'materiais/');
 
 // Rotas para Teste
-$app->rota(API . 'test', 'GET', [TesteControlador::class, 'teste']);
+$app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
+$app->rota(API . 'teste/chave', 'POST', [TesteControlador::class, 'testarChave']);
 
 // Rotas para Usuários
 $app->rota(API . 'logar', 'POST', [UsuarioControlador::class, 'logar']);

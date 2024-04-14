@@ -2,14 +2,14 @@
 
 namespace Banco;
 
-use PDO as ConexaoPDO;
+use PDO as NativoPDO;
 use PDOException;
 
 class PDO
 {
-    private static ?ConexaoPDO $pdo = null;
+    private static ?NativoPDO $pdo = null;
 
-    public static function conectar(): void
+    private static function conectar(): void
     {
         $servidor = '127.0.0.1';
         $banco = 'eco';
@@ -19,7 +19,7 @@ class PDO
         $dsn = "pgsql:host=$servidor;port=5432;dbname=$banco;";
         
         try {
-            self::$pdo = new BasePDO($dsn, $usuario, $senha, [BasePDO::ATTR_ERRMODE => BasePDO::ERRMODE_EXCEPTION]);
+            self::$pdo = new NativoPDO($dsn, $usuario, $senha, [NativoPDO::ATTR_ERRMODE => NativoPDO::ERRMODE_EXCEPTION]);
         } catch (PDOException $e) {
             die($e->getMessage());
         }

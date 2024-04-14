@@ -5,6 +5,16 @@ CREATE TABLE IF NOT EXISTS residuos (
 	PRIMARY KEY(id_residuo)
 );
 
+INSERT INTO residuos (nm_residuo) VALUES ('Papel / Papelão');
+INSERT INTO residuos (nm_residuo) VALUES ('Plástico');
+INSERT INTO residuos (nm_residuo) VALUES ('Metal');
+INSERT INTO residuos (nm_residuo) VALUES ('Vidro');
+INSERT INTO residuos (nm_residuo) VALUES ('Madeira');
+INSERT INTO residuos (nm_residuo) VALUES ('Hospitalar');
+INSERT INTO residuos (nm_residuo) VALUES ('Radioativo');
+INSERT INTO residuos (nm_residuo) VALUES ('Orgânico');
+INSERT INTO residuos (nm_residuo) VALUES ('Geral');
+
 CREATE TABLE IF NOT EXISTS materiais (
 	id_material INT GENERATED ALWAYS AS IDENTITY,
 	nm_material VARCHAR(255) UNIQUE,
@@ -16,6 +26,9 @@ CREATE TABLE IF NOT EXISTS materiais (
 	FOREIGN KEY(id_residuo) REFERENCES residuos(id_residuo)
 );
 
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Papelão', 10, 1, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Garrafa Pet', 20, 2, 'Kg');
+
 CREATE TABLE IF NOT EXISTS produtos (
 	id_produto INT GENERATED ALWAYS AS IDENTITY,
 	nm_produto VARCHAR(255),
@@ -24,6 +37,8 @@ CREATE TABLE IF NOT EXISTS produtos (
 
 	PRIMARY KEY(id_produto)
 );
+
+INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 300);
 
 CREATE TABLE IF NOT EXISTS usuarios (
 	id_usuario INT GENERATED ALWAYS AS IDENTITY,
@@ -71,7 +86,7 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	qt_material FLOAT,
 	fl_aprovado BOOLEAN,
 
-	PRIMARY KEY(id_compra),
+	PRIMARY KEY(id_solicitacao),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
