@@ -4,32 +4,44 @@ require '../vendor/autoload.php';
 
 use App\Aplicacao;
 use App\Banco\PDO;
+use App\Controladores\TesteControlador;
+use App\Controladores\UsuarioControlador;
+use App\Controladores\ProdutosControlador;
+use App\Controladores\ResiduosControlador;
+use App\Controladores\MateriaisControlador;
 
-PDO::conectar();
+//PDO::conectar();
 
 $app = new Aplicacao();
 
-$app->rota('test', 'GET', [App\Controladores\TesteControlador::class, 'teste']);
+define('API', 'api/');
+define('PRODUTOS', API . 'produtos/');
+define('RESIDUOS', API . 'residuos/');
+define('MATERIAIS', API . 'materiais/');
 
-$app->rota('api/logar','POST', [App\Controladores\UsuarioControlador::class, 'logar']);
+// Rotas para Teste
+$app->rota(API . 'test', 'GET', [TesteControlador::class, 'teste']);
 
-$app->rota('api/cadastrar', 'POST', [App\Controladores\UsuarioControlador::class, 'cadastrar']);
+// Rotas para Usuários
+$app->rota(API . 'logar', 'POST', [UsuarioControlador::class, 'logar']);
+$app->rota(API . 'cadastrar', 'POST', [UsuarioControlador::class, 'cadastrar']);
 
-// Produtos
-$app->rota('api/produtos/lista', 'GET', [App\Controladores\ProdutosControlador::class, 'listaProdutos']);
-$app->rota('api/produtos/adicionar', 'POST', [App\Controladores\ProdutosControlador::class, 'adicionarProduto']);
-$app->rota('api/produtos/atualizar', 'POST', [App\Controladores\ProdutosControlador::class, 'atualizarProduto']);
-$app->rota('api/produtos/remover', 'POST', [App\Controladores\ProdutosControlador::class, 'removerProduto']);
+// Rotas para Produtos
+$app->rota(PRODUTOS . 'lista', 'GET', [ProdutosControlador::class, 'listaProdutos']);
+$app->rota(PRODUTOS . 'adicionar', 'POST', [ProdutosControlador::class, 'adicionarProduto']);
+$app->rota(PRODUTOS . 'atualizar', 'POST', [ProdutosControlador::class, 'atualizarProduto']);
+$app->rota(PRODUTOS . 'remover', 'POST', [ProdutosControlador::class, 'removerProduto']);
 
-// Resíduos
-$app->rota('api/residuos/lista', 'GET', [App\Controladores\ResiduosControlador::class, 'listaResiduos']);
-$app->rota('api/residuos/adicionar', 'POST', [App\Controladores\ResiduosControlador::class, 'adicionarResiduo']);
-$app->rota('api/residuos/atualizar', 'POST', [App\Controladores\ResiduosControlador::class, 'atualizarResiduo']);
-$app->rota('api/residuos/remover', 'POST', [App\Controladores\ResiduosControlador::class, 'removerResiduo']);
+// Rotas para Resíduos
+$app->rota(RESIDUOS . 'lista', 'GET', [ResiduosControlador::class, 'listaResiduos']);
+$app->rota(RESIDUOS . 'adicionar', 'POST', [ResiduosControlador::class, 'adicionarResiduo']);
+$app->rota(RESIDUOS . 'atualizar', 'POST', [ResiduosControlador::class, 'atualizarResiduo']);
+$app->rota(RESIDUOS . 'remover', 'POST', [ResiduosControlador::class, 'removerResiduo']);
 
-// Materiais
-$app->rota('api/materiais/lista', 'GET', [App\Controladores\MateriaisControlador::class, 'listaMateriais']);
-$app->rota('api/materiais/adicionar', 'POST', [App\Controladores\MateriaisControlador::class, 'adicionarMaterial']);
-$app->rota('api/materiais/remover', 'POST', [App\Controladores\MateriaisControlador::class, 'removerMaterial']);
+// Rotas para Materiais
+$app->rota(MATERIAIS . 'lista', 'GET', [MateriaisControlador::class, 'listaMateriais']);
+$app->rota(MATERIAIS . 'adicionar', 'POST', [MateriaisControlador::class, 'adicionarMaterial']);
+$app->rota(MATERIAIS . 'remover', 'POST', [MateriaisControlador::class, 'removerMaterial']);
 
+// Execução da aplicação
 $app->rodar();

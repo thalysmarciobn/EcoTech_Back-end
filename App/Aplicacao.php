@@ -3,15 +3,16 @@
 namespace App;
 
 use App\Rotas\ChamadaDeRotas;
+use ReflectionMethod;
+use Exception;
 
 class Aplicacao
 {
-    private $chamadas = array();
+    private array $chamadas = [];
 
-    private function checarChamada($rota)
+    private function checarChamada($rota): void
     {
-        if (!in_array($rota, $this->chamadas))
-        {
+        if (!in_array($rota, array_column($this->chamadas, 'rota'))) {
             array_push($this->chamadas, [
                 'rota' => $rota,
                 'chamadas' => new ChamadaDeRotas()
@@ -19,83 +20,83 @@ class Aplicacao
         }
     }
 
-    private function chamarMetodoInterno($parametros)
+    private function chamarMetodoInterno($parametros): ReflectionMethod
     {
-        $classe = $parametros[0];
-        $funcao = $parametros[1];
-        
-        $chamada = new \ReflectionMethod($classe, $funcao);
-        
-        return $chamada;
-    } 
+        [$classe, $funcao] = $parametros;
+        return new ReflectionMethod($classe, $funcao);
+    }
 
     public function rota($rota, $metodo, $parametros): void
     {
         $this->checarChamada($rota);
 
-        $indiceChamada = -1;
+        $indiceChamada = array_search($rota, array_column($this->chamadas, 'rota'));
 
-        for ($indice = 0; $indice < count($this->chamadas); $indice++)
-        {
-            $chamada = $this->chamadas[$indice];
-
-            if ($chamada['rota']) {
-                $indiceChamada = $indice;
-            }
+        if ($indiceChamada === false) {
+            throw new Exception("Rota não encontrada.", 1);
         }
 
-        $retorno = $this->chamadas[$indiceChamada];
+        $retorno = $this->chamadas[$indiceChamada]['chamadas'];
 
-        $chamada = $retorno['chamadas'];
-        
         $metodoInterno = $this->chamarMetodoInterno($parametros);
 
-        switch ($metodo)
-        {
-            case "GET":
-                if (!$chamada->atualizarGet($metodoInterno))
-                    throw new \Exception("Rota já existente.", 1);
-                break;
-            case "POST":
-                if (!$chamada->atualizarPost($metodoInterno))
-                    throw new \Exception("Rota já existente.", 1);
-                break;
-            case "PUT":
-                if (!$chamada->atualizarPut($metodoInterno))
-                    throw new \Exception("Rota já existente.", 1);
-                break;
-            case "DELETE":
-                if (!$chamada->atualizarDelete($metodoInterno))
-                    throw new \Exception("Rota já existente.", 1);
-                break;
+        $metodosValidos = [
+            "GET" => "atualizarGet",
+            "POST" => "atualizarPost",
+            "PUT" => "atualizarPut",
+            "DELETE" => "atualizarDelete"
+        ];
+        
+        if (isset($metodosValidos[$metodo])) {
+            $funcaoMetodo = $metodosValidos[$metodo];
+            if (!$retorno->$funcaoMetodo($metodoInterno)) {
+                throw new Exception("Rota já existente.", 1);
+            }
+        } else {
+            throw new Exception("Método HTTP inválido.", 1);
         }
     }
 
     private function liberarOrigem(): void
     {
-        header("Allow-Control-Access-Origin: *");
+        header("Access-Control-Allow-Origin: *");
     }
 
-    private function renderizar($metodo, $chamadas)
+    private function renderizar($metodo, $chamadas): string
     {
-        switch ($metodo)
-        {
-            case "GET":
-            default:
-                return $this->retorno($chamadas->get()?->invoke(null));
-            case "POST":
-                return $this->retorno($chamadas->post()?->invoke(null));
-            case "PUT":
-                return $this->retorno($chamadas->put()?->invoke(null));
-            case "DELETE":
-                return $this->retorno($chamadas->delete()?->invoke(null));
+        $metodosValidos = [
+            "GET" => "get",
+            "POST" => "post",
+            "PUT" => "put",
+            "DELETE" => "delete"
+        ];
+
+        if (isset($metodosValidos[$metodo])) {
+            $funcaoMetodo = $metodosValidos[$metodo];
+            $funcao = $chamadas->$funcaoMetodo();
+
+            if ($funcao !== null) {
+                return $this->retorno($funcao->invoke(null));
+            }
         }
+
+        throw new Exception("Método HTTP inválido.", 1);
     }
 
-    private function retorno($objeto)
+    private function retorno($objeto): string
     {
         http_response_code($objeto['code']);
         return json_encode($objeto['data']);
+    }
+
+    private function buscarChamada($rota): ?array
+    {
+        foreach ($this->chamadas as $chamada) {
+            if ($chamada['rota'] === $rota) {
+                return $chamada;
+            }
+        }
+        return null;
     }
     
     public function rodar(): void
@@ -105,18 +106,12 @@ class Aplicacao
         $metodo = $_SERVER['REQUEST_METHOD'];
         $requisicao = substr($_SERVER['REQUEST_URI'], 1);
 
-        for ($indice = 0; $indice < count($this->chamadas); $indice++)
-        {
-            $chamada = $this->chamadas[$indice];
+        $chamada = $this->buscarChamada($requisicao);
 
-            $rota = $chamada['rota'];
-            $chamadas = $chamada['chamadas'];
-
-            if ($rota == $requisicao)
-            {
-                print $this->renderizar($metodo, $chamadas);
-                break;
-            }
+        if ($chamada !== null) {
+            print $this->renderizar($metodo, $chamada['chamadas']);
+        } else {
+            throw new Exception("Rota não encontrada.", 404);
         }
     }
 }
