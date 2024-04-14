@@ -34,8 +34,7 @@ final class UsuarioControlador extends BaseControlador
             $umaHoraFutura = strtotime("+1 hour");
             $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
             
-            $chaveAleatoria = $this->receptaculo->autenticador->gerarChave();
-            $chave = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, $cargoUsuario, $nomeUsuario, $emailUsuario, $chaveAleatoria);
+            [$chaveAleatoria, $chave] = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, $cargoUsuario, $nomeUsuario, $emailUsuario);
 
             $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
             $checarSessaoLivre->execute([$idUsuario]);

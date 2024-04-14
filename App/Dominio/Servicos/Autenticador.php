@@ -10,6 +10,14 @@ class Autenticador
 
     private const FORCA_CHAVE = 16;
 
+    private array $dadosUsuario = [
+        'id' => 0,
+        'cargo' => 0,
+        'nome' => NULL,
+        'email' => NULL,
+        'chave' => NULL
+    ];
+
     public function __construct()
     {
         $bearer = $_SERVER['HTTP_AUTHORIZATION'];
@@ -18,9 +26,20 @@ class Autenticador
         {
             $chaveCriptada = explode('Bearer ', $bearer);
             $chave = $chaveCriptada[1];
-        
-            var_dump($this->obterDadosChaveAutenticacao($chaveCriptada[1]));
+            $dadoDecriptado = $this->decriptarChave($chave);
+
+            $this->atualizarDadosUsuario($dadoDecriptado);
         }
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Retorna os dados do usuário baseado em uma chave criptogradada
+     */
+    public function usuario(): array
+    {
+        return $this->dadosUsuario;
     }
 
     /**
@@ -43,7 +62,12 @@ class Autenticador
         return bin2hex($dado);
     }
 
-    public function criptarChave($dado): string
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Criptografa uma informação baseada em uma chave
+     */
+    private function criptarChave($dado): string
     {
         $bytes = openssl_random_pseudo_bytes(self::FORCA_CHAVE);
         $encriptar = openssl_encrypt($dado, self::METODO, self::CHAVE_SECRETA, 0, $bytes);
@@ -52,36 +76,81 @@ class Autenticador
         return $result;
     }
 
-    public function decriptarChave($dado): string
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Descriptografa uma informação baseada em uma chave
+     */
+    private function decriptarChave($chave): string
     {
-        $decodificado = base64_decode($dado);
-        $bytes = substr($decodificado, 0, self::FORCA_CHAVE);
-        $dadoEncriptado = substr($decodificado, self::FORCA_CHAVE);
-        $dadoDecriptografrado = openssl_decrypt($dadoDecriptografrado, self::METODO, self::CHAVE_SECRETA, 0, $bytes);
+        $decodificar = base64_decode($chave);
+        $bytes = substr($decodificar, 0, self::FORCA_CHAVE);
+        $encriptografado = substr($decodificar, self::FORCA_CHAVE);
+        $decriptografado = openssl_decrypt($encriptografado, self::METODO, self::CHAVE_SECRETA, 0, $bytes);
 
-        return $dadoDecriptografrado;
+        return $decriptografado;
     }
 
-    public function gerarChave(): string
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Gera uma chave aleatória em bytes baseada em um tamanho e converte para HEX
+     */
+    private function gerarChaveAleatoria(int $tamanho = 15): string
     {
-        $pseudoBytes = $this->chaveAleatoria(15);
-        $dadoHex = $this->converterHex($pseudoBytes);
-
-        return $dadoHex;
+        $pseudoBytes = $this->chaveAleatoria($tamanho);
+        return $this->converterHex($pseudoBytes);
     }
 
-    public function gerarChaveAutenticacao(int $id, int $cargo, string $nome, string $email, $chave): string
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Atualiza os dados do usuário autenticado
+     */
+    private function atualizarDadosUsuario($dado)
     {
-        $dados = json_encode(['id' => $id, 'cargo' => $cargo, 'nome' => $nome, 'email' => $email, 'chave' => $chave]);
+        $dados = json_decode($dado, true);
+
+        $this->dadosUsuario = [
+            'id' => $dados['id'],
+            'cargo' => $dados['cargo'],
+            'nome' => $dados['nome'],
+            'email' => $dados['email'],
+            'chave' => $dados['chave']
+        ];
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Formata os dados do usuário
+     */
+    private function formatarDadosUsuario(int $id, int $cargo, string $nome, string $email, string $chave): string
+    {
+        $this->dadosUsuario = [
+            'id' => $id,
+            'cargo' => $cargo,
+            'nome' => $nome,
+            'email' => $email,
+            'chave' => $chave
+        ];
+
+        return json_encode($this->dadosUsuario);
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 14/04/2024
+     * @summary: Gera uma chave de autenticação para a sessão e retorna a chave junto com a cripgorafia dos dados
+     */
+    public function gerarChaveAutenticacao(int $id, int $cargo, string $nome, string $email): array
+    {
+        $chave = $this->gerarChaveAleatoria();
+
+        $dados = $this->formatarDadosUsuario($id, $cargo, $nome, $email, $chave);
+
         $criptografado = $this->criptarChave($dados);
 
-        return $criptografado;
-    }
-    
-    public function obterDadosChaveAutenticacao($dado)
-    {
-        $chaveDecriptada = $this->decriptarChave($dado);
-
-        return $chaveDecriptada;
+        return [$chave, $criptografado];
     }
 }
