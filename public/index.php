@@ -15,6 +15,7 @@ define('API', 'api/');
 define('PRODUTOS', API . 'produtos/');
 define('RESIDUOS', API . 'residuos/');
 define('MATERIAIS', API . 'materiais/');
+define('SOLICITACOES',API .'solicitacoes/');
 
 // Rotas para Teste
 $app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
@@ -40,6 +41,8 @@ $app->rota(RESIDUOS . 'remover', 'POST', [ResiduosControlador::class, 'removerRe
 $app->rota(MATERIAIS . 'lista', 'GET', [MateriaisControlador::class, 'listaMateriais']);
 $app->rota(MATERIAIS . 'adicionar', 'POST', [MateriaisControlador::class, 'adicionarMaterial']);
 $app->rota(MATERIAIS . 'remover', 'POST', [MateriaisControlador::class, 'removerMaterial']);
+
+$app->rota(SOLICITACOES . 'adiconar','POST',[SolicitacoesControlador::class],'adcionarSolicitacoes');
 
 // Execução da aplicação
 $app->rodar();

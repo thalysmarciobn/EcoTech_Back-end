@@ -35,10 +35,10 @@ final class SolicitacoesControlador
         $id_material = $this->post('id_material');
         $dt_solicitacoes =  new \DateTime();
         $id_usuario = $this->receptaculo->autenticador->usuario()['id_usuario'];
-        $fl_aprovado = 0;
+        $vl_status = 0;
 
-        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuario_solicitacoes (id_material,id_usuario,qt_material,fl_aprovado,dt_solicitacoes) VALUES (?,?,?,?,?)");
-        if($inserirSolicitacoes = PDO::execute([$id_material,$id_usuario,$id,$quantidade,$fl_aprovado,$dt_solicitacoes])){
+        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuario_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacoes) VALUES (?,?,?,?,?)");
+        if($inserirSolicitacoes = PDO::execute([$id_material,$id_usuario,$id,$quantidade,$vl_status,$dt_solicitacoes])){
             return $this->responder(['codigo' => 'inserido']);
         }
         
@@ -49,10 +49,10 @@ final class SolicitacoesControlador
     public static function negarSolicitacoes(){
         if($this->receptaculo->validarAutenticacao(1)){
         $id_solicitacoes = $this->post('id_solicitacoes');
-        $fl_aprovado = -1;
-        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET fl_aprovado = ?  WHERE id_solicitacoes = ?");
+        $vl_status = -1;
+        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = ?  WHERE id_solicitacoes = ?");
 
-        if($updateSolicitacao ->execute([$fl_aprovado,$id_solicitacoes])){
+        if($updateSolicitacao ->execute([$vl_status,$id_solicitacoes])){
             return $this->responder(['codigo' => 'atualizado']);
         }
         
@@ -64,10 +64,10 @@ final class SolicitacoesControlador
     public static function aceitarSolicitacoes(){
         if($this->receptaculo->validarAutenticacao(2)){
         $id_solicitacoes = $this->post('id_solicitacoes');
-        $fl_aprovado = 1;
-        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET fl_aprovado = ?  WHERE id_solicitacoes = ?");
+        $vl_status = 1;
+        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = ?  WHERE id_solicitacoes = ?");
 
-        if($updateSolicitacao ->execute([$fl_aprovado,$id_solicitacoes])){
+        if($updateSolicitacao ->execute([$vl_status,$id_solicitacoes])){
             return $this->responder(['codigo' => 'atualizado']);
         }
 
