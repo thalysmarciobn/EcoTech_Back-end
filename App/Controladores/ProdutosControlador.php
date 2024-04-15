@@ -105,4 +105,75 @@ final class ProdutosControlador extends BaseControlador
 
         return $this->responder(['codigo' => 'falha']);
     }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 15/04/2024
+     * @summary: Comprar produtos a partior de uma requisição ao Usuário
+     * @request: id_produto
+     * @roles: Usuário
+     */
+    public function comprarProduto(): array
+    {
+        $idProduto = $this->post('id_produto');
+        $idUsuario = 1; // $this->receptaculo->autenticador->usuario()
+
+        $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
+        $consultaProduto->execute([$idProduto]);
+        $resultadoProduto = $consultaProduto->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resultadoProduto)
+        {
+            return $this->responder(['codigo' => 'produto_inexistente'], 404);
+        }
+
+        $ecoValor = $resultadoProduto['vl_eco'];
+
+        $verificarSaldo = PDO::preparar("SELECT qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
+        $verificarSaldo->execute([$idUsuario]);
+        $resultadoSaldo = $verificarSaldo->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resultadoSaldo)
+        {
+            return $this->responder(['codigo' => 'usuario_inexistente'], 404);
+        }
+
+        $saldoUsuario = $resultadoSaldo['qt_ecosaldo'];
+        if ($saldoUsuario <= $ecoValor)
+        {
+            return $this->responder(['codigo' => 'saldo_insuficiente']);
+        }
+
+        try
+        {
+            PDO::iniciarTransacao();
+
+            $novoSaldo = $saldoUsuario - $ecoValor;
+            $atualizarSaldo = PDO::preparar("UPDATE usuarios SET qt_ecosaldo = ? WHERE id_usuario = ?");
+            $executarAtualizarSaldo = $atualizarSaldo->execute([$novoSaldo, $idUsuario]);
+
+            $inserirCompra = PDO::preparar("INSERT INTO usuarios_compras (id_usuario, id_produto, qt_ecovalor) VALUES (?, ?, ?)");
+            $compraExecutada = $inserirCompra->execute([$idUsuario, $idProduto, $ecoValor]);
+            
+            if ($compraExecutada)
+            {
+                PDO::entregarTransacao();
+
+                return $this->responder([
+                    'codigo' => 'debitado',
+                    'debitado' => $ecoValor,
+                    'saldo' => $novoSaldo
+                ]);
+            }
+
+            PDO::reverterTransacao();
+            
+            return $this->responder(['codigo' => 'falha'], 500);
+        }
+        catch (\Exception $e)
+        {
+            PDO::reverterTransacao();
+        }
+        return $this->responder(['codigo' => 'falha'], 500);
+    }
 }

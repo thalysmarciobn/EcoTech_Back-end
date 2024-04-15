@@ -29,6 +29,7 @@ $app->rota(PRODUTOS . 'lista', 'GET', [ProdutosControlador::class, 'listaProduto
 $app->rota(PRODUTOS . 'adicionar', 'POST', [ProdutosControlador::class, 'adicionarProduto']);
 $app->rota(PRODUTOS . 'atualizar', 'POST', [ProdutosControlador::class, 'atualizarProduto']);
 $app->rota(PRODUTOS . 'remover', 'POST', [ProdutosControlador::class, 'removerProduto']);
+$app->rota(PRODUTOS . 'comprar', 'POST', [ProdutosControlador::class, 'comprarProduto']);
 
 // Rotas para Resíduos
 $app->rota(RESIDUOS . 'lista', 'GET', [ResiduosControlador::class, 'listaResiduos']);
