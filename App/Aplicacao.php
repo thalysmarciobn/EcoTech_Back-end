@@ -185,7 +185,7 @@ class Aplicacao
      */
     private function retorno($objeto): string
     {
-        return json_encode($objeto, JSON_THROW_ON_ERROR);
+        return json_encode($objeto, false);
     }
     
     /**
@@ -216,8 +216,9 @@ class Aplicacao
 
         $metodo = $_SERVER['REQUEST_METHOD'];
         $requisicao = substr($_SERVER['REQUEST_URI'], 1);
+        $rota = explode('?', $requisicao);
 
-        $chamada = $this->buscarChamada($requisicao);
+        $chamada = $this->buscarChamada($rota[0]);
 
         if ($chamada !== null)
         {

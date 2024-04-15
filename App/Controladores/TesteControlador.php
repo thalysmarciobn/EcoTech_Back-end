@@ -3,6 +3,7 @@
 namespace App\Controladores;
 
 use App\BaseControlador;
+use Banco\PDO;
 
 final class TesteControlador extends BaseControlador
 {

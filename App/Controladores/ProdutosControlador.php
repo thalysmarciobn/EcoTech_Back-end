@@ -15,10 +15,9 @@ final class ProdutosControlador extends BaseControlador
      */
     public function listaProdutos(): array
     {
-        $consulta = PDO::preparar("SELECT * FROM produtos");
-        $consulta->execute();
+        $paginaAtual = $this->get('pagina');
 
-        return $this->responder($consulta->fetchAll());
+        return $this->responder(PDO::paginacao('produtos', 'id_produto', $paginaAtual, 9));
     }
 
     /**
