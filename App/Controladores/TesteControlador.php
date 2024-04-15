@@ -21,5 +21,7 @@ final class TesteControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         return $this->responder(['usuario' => $usuario]);
+    
     }
+    
 }
