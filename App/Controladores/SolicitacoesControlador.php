@@ -48,7 +48,7 @@ final class SolicitacoesControlador
 
         $deletarSolicitacao = PDO::preparar("DELETE FROM usuarios_solicitacoes WHERE id_solicitacoes = ?");
 
-        if($deletarSolicitacao ->execute(['$id_solicitacoes'])){
+        if($deletarSolicitacao ->execute([$id_solicitacoes])){
             return $this->responder(['codigo' => $deletarSolicitacao->rowCount()> 0 ? 'removido' : 'inexistente']);
         }
         
