@@ -18,7 +18,7 @@ final class MateriaisControlador extends BaseControlador
         $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais");
         $consulta->execute();
 
-        return $this->responder($consulta->fetchAll());
+        return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
     }
 
     /**
