@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	id_material INT,
 	id_usuario INT,
 	qt_material FLOAT,
-	fl_aprovado BOOLEAN,
+	fl_aprovado INT,
 	dt_solicitacoes DATE,
 
 	PRIMARY KEY(id_solicitacao),
