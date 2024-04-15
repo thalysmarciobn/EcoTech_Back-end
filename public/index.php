@@ -18,7 +18,7 @@ define('MATERIAIS', API . 'materiais/');
 
 // Rotas para Teste
 $app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
-$app->rota(API . 'teste/chave', 'POST', [TesteControlador::class, 'testarChave']);
+$app->rota(API . 'teste/chave', 'GET', [TesteControlador::class, 'testarChave']);
 
 // Rotas para Usuários
 $app->rota(API . 'logar', 'POST', [UsuarioControlador::class, 'logar']);

@@ -16,6 +16,8 @@ final class TesteControlador extends BaseControlador
 
     public function testarChave(): array
     {
+        $this->receptaculo->validarAutenticacao();
+        
         $usuario = $this->receptaculo->autenticador->usuario();
 
         return $this->responder(['usuario' => $usuario]);

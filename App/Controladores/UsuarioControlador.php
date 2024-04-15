@@ -50,7 +50,7 @@ final class UsuarioControlador extends BaseControlador
             $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
             if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
             {
-                return $this->responder(['codigo' => 'logado']);
+                return $this->responder(['codigo' => 'logado', 'chave' => $chave]);
             }
         }
 
