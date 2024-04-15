@@ -50,11 +50,13 @@ class Aplicacao
      */
     private function verificarEAdicionarClasse(string $classe): void
     {
-        $classeExistente = array_filter($this->controladores, function($controlador) use ($classe) {
+        $classeExistente = array_filter($this->controladores, function($controlador) use ($classe)
+        {
             return $controlador['classe'] instanceof $classe;
         });
 
-        if (empty($classeExistente)) {
+        if (empty($classeExistente))
+        {
             $classeInstanciada = new $classe($this->receptaculo);
             $this->controladores[] = [
                 'nome' => get_class($classeInstanciada),
@@ -70,7 +72,8 @@ class Aplicacao
      */
     private function verificarEAdicionarChamada(string $rota): void
     {
-        if (!in_array($rota, array_column($this->chamadas, 'rota'))) {
+        if (!in_array($rota, array_column($this->chamadas, 'rota')))
+        {
             $this->chamadas[] = [
                 'rota' => $rota,
                 'chamadas' => new Chamadas()
@@ -87,7 +90,8 @@ class Aplicacao
     {
         $indiceControlador = array_search($classe, array_column($this->controladores, 'nome'));
 
-        if ($indiceControlador === false) {
+        if ($indiceControlador === false)
+        {
             throw new Exception("Controlador não encontrado.", 1);
         }
 
@@ -103,7 +107,8 @@ class Aplicacao
     {
         $indiceChamada = array_search($rota, array_column($this->chamadas, 'rota'));
 
-        if ($indiceChamada === false) {
+        if ($indiceChamada === false)
+        {
             throw new Exception("Rota não encontrada.", 1);
         }
 
@@ -117,10 +122,13 @@ class Aplicacao
      */
     private function processarMetodo(string $metodo, Chamadas $retorno, object $classeInstanciada, string $funcao): void
     {
-        if (isset($this->metodosValidosDeChamadas[$metodo])) {
+        if (isset($this->metodosValidosDeChamadas[$metodo]))
+        {
             $funcaoMetodo = $this->metodosValidosDeChamadas[$metodo];
             $retorno->$funcaoMetodo = ['classe' => $classeInstanciada, 'metodo' => $funcao];
-        } else {
+        }
+        else
+        {
             throw new Exception("Método HTTP inválido.", 1);
         }
     }
@@ -154,13 +162,20 @@ class Aplicacao
 
             if ($funcaoMetodo == NULL)
             {
-                exit('Método não pode ser instanciado: ' . $metodoInstanciado);
+                throw new Exception('Método não pode ser instanciado: ' . $metodoInstanciado, 1);
             }
             
-            return $this->retorno($funcaoMetodo->invoke($classeInstanciada));
+            $retorno = $funcaoMetodo->invoke($classeInstanciada);
+
+            if (is_array($retorno))
+            {
+                return $this->retorno($retorno);
+            }
+
+            throw new Exception('Retorno inválido.', 1);
         }
 
-        throw new Exception("Método HTTP inválido.", 1);
+        throw new Exception('Método HTTP inválido.', 1);
     }
     
     /**
@@ -180,8 +195,10 @@ class Aplicacao
      */
     private function buscarChamada($rota): ?array
     {
-        foreach ($this->chamadas as $chamada) {
-            if ($chamada['rota'] === $rota) {
+        foreach ($this->chamadas as $chamada)
+        {
+            if ($chamada['rota'] === $rota)
+            {
                 return $chamada;
             }
         }
@@ -202,9 +219,12 @@ class Aplicacao
 
         $chamada = $this->buscarChamada($requisicao);
 
-        if ($chamada !== null) {
+        if ($chamada !== null)
+        {
             print $this->renderizar($metodo, $chamada['chamadas']);
-        } else {
+        }
+        else
+        {
             throw new Exception("Rota não encontrada.", 404);
         }
     }
