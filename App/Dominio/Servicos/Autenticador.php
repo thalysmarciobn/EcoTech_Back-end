@@ -20,12 +20,13 @@ class Autenticador
 
     public function __construct()
     {
-        $bearer = $_SERVER['HTTP_AUTHORIZATION'];
-        
-        if (isset($bearer))
+        if (isset($_SERVER['HTTP_AUTHORIZATION']))
         {
+            $bearer = $_SERVER['HTTP_AUTHORIZATION'];
+
             $chaveCriptada = explode('Bearer ', $bearer);
             $chave = $chaveCriptada[1];
+            
             $dadoDecriptado = $this->decriptarChave($chave);
 
             $this->atualizarDadosUsuario($dadoDecriptado);

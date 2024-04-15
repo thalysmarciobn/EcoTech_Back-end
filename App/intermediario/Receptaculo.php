@@ -13,6 +13,11 @@ class Receptaculo
         $this->autenticador = new Autenticador();
     }
 
+    public function validarAutenticacao()
+    {
+        return true;
+    }
+
     public function teste(): string
     {
         return "aa";
