@@ -22,7 +22,7 @@ final class SolicitacoesControlador
 
     /**
      * @author: Antonio Jorge
-     * @created: 12/04/2024
+     * @created: 15/04/2024
      * @summary: Adicionar Solicitação
      * @roles: Administrador, Funcionário
      */
@@ -44,7 +44,14 @@ final class SolicitacoesControlador
         
         }
         return $this->responder(['codigo' => 'falha']);
-     }
+    }
+
+    /**
+     * @author: Antonio Jorge
+     * @created: 15/04/2024
+     * @summary: Negar Solicitação
+     * @roles: Administrador, Funcionário
+     */
 
     public static function negarSolicitacoes(){
         if($this->receptaculo->validarAutenticacao(1)){
@@ -61,8 +68,16 @@ final class SolicitacoesControlador
         return $this->responder(['codigo' => 'falha']);
 
     }
+
+    /**
+     * @author: Antonio Jorge
+     * @created: 15/04/2024
+     * @summary: Aceita Solicitação
+     * @roles: Administrador, Funcionário
+     */
+
     public static function aceitarSolicitacoes(){
-        if($this->receptaculo->validarAutenticacao(2)){
+        if($this->receptaculo->validarAutenticacao(1)){
         $id_solicitacoes = $this->post('id_solicitacoes');
         $vl_status = 1;
         $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = ?  WHERE id_solicitacoes = ?");
