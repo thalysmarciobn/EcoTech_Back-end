@@ -22,4 +22,5 @@ final class TesteControlador extends BaseControlador
 
         return $this->responder(['usuario' => $usuario]);
     }
+    
 }
