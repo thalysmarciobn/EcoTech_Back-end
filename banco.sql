@@ -158,3 +158,12 @@ CREATE TABLE IF NOT EXISTS sessoes (
 	PRIMARY KEY(id_sessao),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
+
+CREATE TABLE IF NOT EXISTS cambio (
+	id_cambio INT GENERATED ALWAYS AS IDENTITY,
+	ECO FLOAT,
+	BRL FLOAT,
+	
+	PRIMARY KEY(id_cambio)
+);
+INSERT INTO cambio (eco,brl) VALUES (1,1);

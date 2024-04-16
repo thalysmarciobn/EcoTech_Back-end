@@ -9,6 +9,7 @@ use App\Controladores\ProdutosControlador;
 use App\Controladores\ResiduosControlador;
 use App\Controladores\MateriaisControlador;
 use App\Controladores\SolicitacoesControlador;
+use App\Controladores\CambioControlador;
 
 $app = new Aplicacao();
 
@@ -18,6 +19,7 @@ define('PRODUTOS', API . 'produtos/');
 define('RESIDUOS', API . 'residuos/');
 define('MATERIAIS', API . 'materiais/');
 define('SOLICITACOES', API .'solicitacoes/');
+define('CAMBIO', API . 'cambio/');
 
 // Rotas para Teste
 $app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
@@ -54,6 +56,7 @@ $app->rota(SOLICITACOES . 'adicionar', 'POST', [SolicitacoesControlador::class, 
 $app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitarSolicitacoes']);
 $app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacoes']);
 
-
+// Rotar para Cambio
+$app->rota(CAMBIO . 'atualizar', 'POST', [CambioControlador::class, 'atualizarEco']);
 // Execução da aplicação
 $app->rodar();

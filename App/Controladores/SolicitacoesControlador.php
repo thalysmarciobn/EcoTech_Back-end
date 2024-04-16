@@ -5,6 +5,7 @@ use App\BaseControlador;
 use Banco\PDO;
 
 final class SolicitacoesControlador extends BaseControlador
+
 {
     /**
      * @author: Thalys Márcio
@@ -12,10 +13,12 @@ final class SolicitacoesControlador extends BaseControlador
      * @summary: Lista os um solicitações
      * @roles: Administrador, Funcionário
      */
-    public static function listaSolicitacoes(): array
+    public static function listaSolicitacoes()
     {
         $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
         $consulta->execute();
+
+        return ['code' => 200, 'data' => $consulta->fetchAll()];
 
         return $this->responder($consulta->fetchAll());
     }
@@ -42,8 +45,8 @@ final class SolicitacoesControlador extends BaseControlador
         if($inserirSolicitacoes -> execute([$id_material,$id_usuario,$quantidade,$vl_status,$dt_solicitacoes])){
             return $this->responder(['codigo' => 'inserido']);
         }
+        
        // }
-        }
         return $this->responder(['codigo' => 'falha']);
     }
 
@@ -92,6 +95,11 @@ final class SolicitacoesControlador extends BaseControlador
         
             $ConsultaSolicitacaoVl_status1 -> execute([$vl_status]);
             $solicitacao = $ConsultaSolicitacaoVl_status1 -> fetch(\PDO::FETCH_ASSOC);
+            
+            if (!$solicitacao)
+            {
+                return $this->responder(['codigo' => 'solicitacao_inexistente']);
+            }
             $ConsultarValorMaterial = PDO::preparar("SELECT * FROM materiais WHERE id_material = ?");
             $ConsultarValorMaterial ->execute([$solicitacao['id_material']]);
 
@@ -109,8 +117,7 @@ final class SolicitacoesControlador extends BaseControlador
             
             $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_material,id_usuario,id_funcionario,qt_material,vl_ecorecebido,dt_recebimento) VALUES (?,?,?,?,?,?)");
 
-            var_dump($solicitacao);
-            var_dump($material);
+            
             if ($inserirRecebimento->execute([$id_materialRecebimento, $id_usuarioRecebimento, $id_funcionario, $qt_materialRecebimento, $vl_ecorecebido, $dt_recebimentos])) {
                 return $this->responder(['codigo' => 'aprovado']);
             }
@@ -147,5 +154,6 @@ final class SolicitacoesControlador extends BaseControlador
 
             return $this->responder(['codigo' => 'falha']);
         //}
+
     }
 }
