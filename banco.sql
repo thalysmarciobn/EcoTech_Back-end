@@ -125,13 +125,15 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	id_solicitacao INT GENERATED ALWAYS AS IDENTITY,
 	id_material INT,
 	id_usuario INT,
+	id_endereco INT,
 	qt_material FLOAT,
 	vl_status INT,
 	dt_solicitacao TIMESTAMP,
 
 	PRIMARY KEY(id_solicitacao),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
-	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
+	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
+	FOREIGN KEY(id_endereco) REFERENCES usuarios_enderecos(id_endereco)
 );
 
 CREATE TABLE IF NOT EXISTS recebimentos (

@@ -27,23 +27,27 @@ final class SolicitacoesControlador extends BaseControlador
      * @roles: Administrador, Funcionário
      */
 
-     public function adcionarSolicitacoes(): array
+     public function adcionarSolicitacao(): array
      {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
 
-        //if($this->receptaculo->validarAutenticacao(0)){
-        $id_usuario = 3;
-        $quantidade = $this->post('quantidade');
-        $id_material = $this->post('id_material');
-        $dt_solicitacoes = date('d/m/Y H:i');
-       // $id_usuario = $this->receptaculo->autenticador->usuario()['id_usuario'];
-        $vl_status = 0;
+        $usuario = $this->receptaculo->autenticador->usuario();
 
-        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (?,?,?,?,?)");
-        if($inserirSolicitacoes -> execute([$id_material,$id_usuario,$quantidade,$vl_status,$dt_solicitacoes])){
+        $usuarioId = $usuario['id'];
+
+        $idMaterial = $this->post('id_material');
+        $idEndereco = $this->post('id_endereco');
+        $quantidadeMaterial = $this->post('qt_material');
+        $dataSolicitacao = date('d/m/Y H:i');
+
+        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, id_endereco, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, ?, 0, ?)");
+        if($inserirSolicitacoes->execute([$idMaterial, $usuarioId, $idEndereco, $quantidadeMaterial, $dataSolicitacao])){
             return $this->responder(['codigo' => 'inserido']);
         }
-       // }
-        }
+        
         return $this->responder(['codigo' => 'falha']);
     }
 
@@ -133,19 +137,27 @@ final class SolicitacoesControlador extends BaseControlador
      * @summary: lista de Solicitação do usuario
      * @roles: Administrador, Funcionário
      */
-    public function listaSolicitacoesUsuario(): array
+    public function listaUsuario(): array
     {
-        //if($this->receptaculo->validarAutenticacao(0)){
-            $id_usuario = 1;//$this->receptaculo->autenticador->usuario()['id_usuario'];
-
-            $consultaSolicitacoesUsuarios = PDO::preparar("SELECT id_solicitacao,nm_residuo,nm_material,qt_material,vl_status,dt_solicitacao FROM usuarios_solicitacoes 
-            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
-            JOIN residuos ON residuos.id_residuo = materiais.id_residuo WHERE usuarios_solicitacoes.id_usuario = ?");
-            $consultaSolicitacoesUsuarios -> execute([$id_usuario]);
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
             
-            return $this->responder($consultaSolicitacoesUsuarios->fetchAll());
+        $usuario = $this->receptaculo->autenticador->usuario();
 
-            return $this->responder(['codigo' => 'falha']);
-        //}
+        $usuarioId = $usuario['id'];
+
+        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao,nm_residuo,nm_material,qt_material,vl_status,dt_solicitacao FROM usuarios_solicitacoes 
+            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
+            JOIN residuos ON residuos.id_residuo = materiais.id_residuo WHERE usuarios_solicitacoes.id_usuario = ?",
+            [$usuarioId]);
+            
+            return $this->responder([
+                'codigo' => 'recebido',
+                'dados' => $consultaSolicitacoesUsuarios
+            ]);
+
+        return $this->responder(['codigo' => 'falha']);
     }
 }
