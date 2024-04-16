@@ -126,8 +126,8 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	id_material INT,
 	id_usuario INT,
 	qt_material FLOAT,
-	fl_aprovado INT,
-	dt_solicitacoes DATE,
+	vl_status INT,
+	dt_solicitacao TIMESTAMP,
 
 	PRIMARY KEY(id_solicitacao),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS recebimentos (
 	id_funcionario INT,
 	qt_material FLOAT,
 	vl_ecorecebido FLOAT,
-	id_recebimentos DATE,
+	dt_recebimento TIMESTAMP,
 
 	PRIMARY KEY(id_recebimento),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),

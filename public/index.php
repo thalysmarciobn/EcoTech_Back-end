@@ -8,6 +8,7 @@ use App\Controladores\UsuarioControlador;
 use App\Controladores\ProdutosControlador;
 use App\Controladores\ResiduosControlador;
 use App\Controladores\MateriaisControlador;
+use App\Controladores\SolicitacoesControlador;
 
 $app = new Aplicacao();
 
@@ -16,6 +17,7 @@ define('USUARIO', API . 'usuario/');
 define('PRODUTOS', API . 'produtos/');
 define('RESIDUOS', API . 'residuos/');
 define('MATERIAIS', API . 'materiais/');
+define('SOLICITACOES', API .'solicitacoes/');
 
 // Rotas para Teste
 $app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
@@ -44,6 +46,14 @@ $app->rota(MATERIAIS . 'lista', 'GET', [MateriaisControlador::class, 'listaMater
 $app->rota(MATERIAIS . 'obter', 'GET', [MateriaisControlador::class, 'obter']);
 $app->rota(MATERIAIS . 'adicionar', 'POST', [MateriaisControlador::class, 'adicionarMaterial']);
 $app->rota(MATERIAIS . 'remover', 'POST', [MateriaisControlador::class, 'removerMaterial']);
+
+// Rotas para Solicitações
+$app->rota(SOLICITACOES . 'listaUsuario', 'GET', [SolicitacoesControlador::class, 'listaSolicitacoesUsuario']);
+$app->rota(SOLICITACOES . 'lista', 'GET', [SolicitacoesControlador::class, 'listaSolicitacoes']);
+$app->rota(SOLICITACOES . 'adicionar', 'POST', [SolicitacoesControlador::class, 'adcionarSolicitacoes']);
+$app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitarSolicitacoes']);
+$app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacoes']);
+
 
 // Execução da aplicação
 $app->rodar();
