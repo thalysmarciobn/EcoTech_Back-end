@@ -3,15 +3,13 @@
 namespace App\Controladores;
 
 use App\BaseControlador;
+use Banco\PDO;
 
 final class TesteControlador extends BaseControlador
 {
     public function teste(): array
     {
-        $encrypt = $this->receptaculo->autenticador->encrypt("aaaaaa");
-        $decrypt = $this->receptaculo->autenticador->decrypt($encrypt);
-        
-        return $this->responder(['text' => 'Isso é um teste', 'chave' => $encrypt, 'dsd' => $decrypt]);
+        return $this->responder(['text' => 'Isso é um teste']);
     }
 
     public function testarChave(): array

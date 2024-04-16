@@ -18,7 +18,7 @@ final class ResiduosControlador extends BaseControlador
         $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
         $consulta->execute();
 
-        return $this->responder($consulta->fetchAll());
+        return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
     }
 
     /**
