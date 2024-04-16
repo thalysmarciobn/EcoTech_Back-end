@@ -58,7 +58,7 @@ $app->rota(SOLICITACOES . 'lista', 'GET', [SolicitacoesControlador::class, 'list
 $app->rota(SOLICITACOES . 'lista', 'OPTIONS', [SolicitacoesControlador::class, 'listaSolicitacoes']);
 
 $app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitarSolicitacao']);
-$app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacoes']);
+$app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacao']);
 
 
 // Execução da aplicação

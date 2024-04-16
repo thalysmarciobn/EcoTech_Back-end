@@ -63,20 +63,41 @@ final class SolicitacoesControlador extends BaseControlador
      * @summary: Negar Solicitação
      * @roles: Administrador, Funcionário
      */
-
-     public function negarSolicitacoes(): array
+    public function negarSolicitacao(): array
     {
-       // if($this->receptaculo->validarAutenticacao(1)){
-        $id_usuario = 1;
-        $id_solicitacao = $this->post('id_solicitacao');
-        $vl_status = -1;
-        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = ? WHERE id_solicitacao = ?");
+        if (!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'cargo_insuficiente']);
+        }
+        
+        $usuario = $this->receptaculo->autenticador->usuario();
 
-        if($updateSolicitacao ->execute([$vl_status,$id_solicitacao])){
+        $idFuncionario = $usuario['id'];
+        $idSolicitacao = $this->post('id_solicitacao');
+
+        $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, vl_status FROM usuarios_solicitacoes WHERE id_solicitacao = ?");
+        $consultaSolicitacao->execute([$idSolicitacao]);
+
+        $consultaSolicitacaoUsuario = $consultaSolicitacao->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$consultaSolicitacaoUsuario)
+        {
+            return $this->responder(['codigo' => 'solicitacao_inexistente']);
+        }
+
+        $statusSolicitacao = $consultaSolicitacaoUsuario['vl_status'];
+
+        if ($statusSolicitacao != 0)
+        {
+            return $this->responder(['codigo' => $statusSolicitacao == 1 ?
+                'solicitacao_ja_aprovada' : 'solicitacao_ja_negada']);
+        }
+        
+        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = -1 WHERE id_solicitacao = ?");
+        if($updateSolicitacao->execute([$idSolicitacao])){
             return $this->responder(['codigo' => 'atualizado']);
         }
 
-       // }
         return $this->responder(['codigo' => 'falha']);
     }
 
