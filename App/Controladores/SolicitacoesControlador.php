@@ -18,7 +18,7 @@ final class SolicitacoesControlador extends BaseControlador
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            ORDER BY usuarios_solicitacoes.dt_solicitacao DESC");
+            WHERE vl_status = 0 ORDER BY usuarios_solicitacoes.dt_solicitacao DESC");
             
         return $this->responder([
             'codigo' => 'recebido',
