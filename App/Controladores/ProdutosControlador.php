@@ -68,6 +68,9 @@ final class ProdutosControlador extends BaseControlador
         $nomeProduto = $this->post('nm_produto');
         $descricaoProduto = $this->post('ds_produto');
         $valorEco = $this->post('vl_eco');
+        if($valorEco  < 0){
+            return $this->responder(['codigo' => 'Valor Invalido']);
+        }
 
         $consultaProduto = PDO::preparar("SELECT id_produto FROM produtos WHERE id_produto = ?");
         $consultaProduto->execute([$idProduto]);
@@ -139,7 +142,7 @@ final class ProdutosControlador extends BaseControlador
         }
 
         $saldoUsuario = $resultadoSaldo['qt_ecosaldo'];
-        if ($saldoUsuario <= $ecoValor)
+        if ($saldoUsuario < $ecoValor)
         {
             return $this->responder(['codigo' => 'saldo_insuficiente']);
         }
