@@ -15,6 +15,7 @@ class Aplicacao
         "GET" => "get",
         "POST" => "post",
         "PUT" => "put",
+        "OPTIONS" => "options",
         "DELETE" => "delete"
     ];
 
@@ -126,6 +127,12 @@ class Aplicacao
         {
             $funcaoMetodo = $this->metodosValidosDeChamadas[$metodo];
             $retorno->$funcaoMetodo = ['classe' => $classeInstanciada, 'metodo' => $funcao];
+
+            if ($metodo == "OPTIONS")
+            {
+                $funcaoMetodo = $this->metodosValidosDeChamadas["GET"];
+                $retorno->get = ['classe' => $classeInstanciada, 'metodo' => $funcao]; 
+            }
         }
         else
         {
@@ -141,6 +148,7 @@ class Aplicacao
     private function liberarOrigem(): void
     {
         header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Headers: *");
     }
 
     /**
@@ -215,6 +223,7 @@ class Aplicacao
         $this->liberarOrigem();
 
         $metodo = $_SERVER['REQUEST_METHOD'];
+
         $requisicao = substr($_SERVER['REQUEST_URI'], 1);
         $rota = explode('?', $requisicao);
 

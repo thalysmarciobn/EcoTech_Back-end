@@ -24,6 +24,22 @@ final class MateriaisControlador extends BaseControlador
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
+     * @summary: Retornar a lista de materiais
+     * @roles: Administrador, Funcionário, Usuário
+     */
+    public function obter(): array
+    {
+        $idResiduo = $this->get('id_residuo');
+
+        $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais WHERE id_residuo = ?");
+        $consulta->execute([$idResiduo]);
+
+        return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 12/04/2024
      * @summary: Adicionar material a partir de uma requisição
      * @request: nm_material
      * @request: vl_eco

@@ -41,7 +41,6 @@ final class SolicitacoesControlador
         if($inserirSolicitacoes = PDO::execute([$id_material,$id_usuario,$id,$quantidade,$fl_aprovado,$dt_solicitacoes])){
             return $this->responder(['codigo' => 'inserido']);
         }
-        
         }
         return $this->responder(['codigo' => 'falha']);
      }

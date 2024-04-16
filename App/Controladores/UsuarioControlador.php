@@ -30,6 +30,7 @@ final class UsuarioControlador extends BaseControlador
             $idUsuario = $usuario['id_usuario'];
             $nomeUsuario = $usuario['nm_usuario'];
             $cargoUsuario = $usuario['nu_cargo'];
+            $quantidadeEcoSaldo = $usuario['qt_ecosaldo'];
 
             $umaHoraFutura = strtotime("+1 hour");
             $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
@@ -44,14 +45,45 @@ final class UsuarioControlador extends BaseControlador
                 $atualizarSessao = PDO::preparar("UPDATE sessoes SET nm_chave = ?, dt_expiracao = ? WHERE id_usuario = ?");
                 $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
 
-                return $this->responder(['codigo' => 'logado', 'chave' => $chave]);
+                return $this->responder(['codigo' => 'logado',
+                    'nm_usuario' => $nomeUsuario,
+                    'nu_cargo' => $cargoUsuario,
+                    'qt_ecosaldo' => $quantidadeEcoSaldo,
+                    'chave' => $chave]);
             }
 
             $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
             if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
             {
-                return $this->responder(['codigo' => 'logado', 'chave' => $chave]);
+                return $this->responder(['codigo' => 'logado',
+                    'nm_usuario' => $nomeUsuario,
+                    'nu_cargo' => $cargoUsuario,
+                    'qt_ecosaldo' => $quantidadeEcoSaldo,
+                    'chave' => $chave]);
             }
+        }
+
+        return $this->responder(['codigo' => 'falha']);
+    }
+
+    public function enderecos(): array
+    {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id'];
+
+        $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento FROM usuarios_enderecos WHERE id_usuario = ?");
+        if ($enderecos->execute([$usuarioId]))
+        {
+            return $this->responder([
+                'codigo' => 'sucesso',
+                'enderecos' => $enderecos->fetchAll(\PDO::FETCH_ASSOC)
+            ]);
         }
 
         return $this->responder(['codigo' => 'falha']);

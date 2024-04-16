@@ -26,8 +26,42 @@ CREATE TABLE IF NOT EXISTS materiais (
 	FOREIGN KEY(id_residuo) REFERENCES residuos(id_residuo)
 );
 
-INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Papelão', 10, 1, 'Kg');
-INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Garrafa Pet', 20, 2, 'Kg');
+-- Materiais de Papel / Papelão
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Jornal', 8, 1, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Papel Branco', 12, 1, 'Kg');
+
+-- Materiais de Plástico
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Embalagem Plástica', 15, 2, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Saco Plástico', 18, 2, 'Kg');
+
+-- Materiais de Metal
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Lata de Alumínio', 25, 3, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Ferro', 30, 3, 'Kg');
+
+-- Materiais de Vidro
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Garrafa de Vidro', 22, 4, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Vidro Plano', 20, 4, 'Kg');
+
+-- Materiais de Madeira
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Móveis de Madeira', 35, 5, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Tábuas', 30, 5, 'Kg');
+
+-- Materiais Hospitalares
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Agulhas', 50, 6, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Luvas Descartáveis', 40, 6, 'Kg');
+
+-- Materiais Radioativos
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Material Radioativo 1', 100, 7, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Material Radioativo 2', 120, 7, 'Kg');
+
+-- Materiais Orgânicos
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Restos de Comida', 5, 8, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Folhas', 6, 8, 'Kg');
+
+-- Materiais Gerais
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Entulho', 40, 9, 'Kg');
+INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida) VALUES ('Sucata', 45, 9, 'Kg');
+
 
 CREATE TABLE IF NOT EXISTS produtos (
 	id_produto INT GENERATED ALWAYS AS IDENTITY,
@@ -51,7 +85,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	PRIMARY KEY(id_usuario)
 );
 
-INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('teste@teste.com', 'Teste', '827ccb0eea8a706c4c34a16891f84e7b', 0, 0);
+INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('test3@teste.com', 'Teste', '827ccb0eea8a706c4c34a16891f84e7b', 0, 0);
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('funcionario@teste.com', 'Funcionário', '827ccb0eea8a706c4c34a16891f84e7b', 0, 1);
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('admin@teste.com', 'Administrador', '827ccb0eea8a706c4c34a16891f84e7b', 0, 2);
 
@@ -63,10 +97,18 @@ CREATE TABLE IF NOT EXISTS usuarios_enderecos (
 	nm_cidade VARCHAR(255),
 	nm_estado VARCHAR(255),
 	nu_casa INT,
+	nm_complemento VARCHAR(255),
 
 	PRIMARY KEY(id_endereco),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
+
+INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento)
+	VALUES (1, 'R. Alceu Amoroso Lima', 'Caminho das Árvores', 'Salvador', 'Bahia', 1, 'Salvador Business & Flat');
+INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento)
+	VALUES (2, 'R. Alceu Amoroso Lima', 'Caminho das Árvores', 'Salvador', 'Bahia', 1, 'Salvador Business & Flat');
+INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento)
+	VALUES (3, 'R. Alceu Amoroso Lima', 'Caminho das Árvores', 'Salvador', 'Bahia', 1, 'Salvador Business & Flat');
 
 CREATE TABLE IF NOT EXISTS usuarios_compras (
 	id_compra INT GENERATED ALWAYS AS IDENTITY,
