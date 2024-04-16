@@ -14,8 +14,9 @@ final class SolicitacoesControlador extends BaseControlador
      */
     public function listaSolicitacoes(): array
     {
-        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
+        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
+            JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
             ORDER BY usuarios_solicitacoes.dt_solicitacao DESC");
             
@@ -31,10 +32,9 @@ final class SolicitacoesControlador extends BaseControlador
      * @author: Antonio Jorge
      * @created: 15/04/2024
      * @summary: Adicionar Solicitação
-     * @roles: Administrador, Funcionário
+     * @roles: Usuário
      */
-
-     public function adcionarSolicitacao(): array
+     public function adicionarSolicitacao(): array
      {
         if(!$this->receptaculo->validarAutenticacao(0))
         {
@@ -46,12 +46,11 @@ final class SolicitacoesControlador extends BaseControlador
         $usuarioId = $usuario['id'];
 
         $idMaterial = $this->post('id_material');
-        $idEndereco = $this->post('id_endereco');
         $quantidadeMaterial = $this->post('qt_material');
         $dataSolicitacao = date('d/m/Y H:i');
 
-        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, id_endereco, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, ?, 0, ?)");
-        if($inserirSolicitacoes->execute([$idMaterial, $usuarioId, $idEndereco, $quantidadeMaterial, $dataSolicitacao])){
+        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, 0, ?)");
+        if($inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao])){
             return $this->responder(['codigo' => 'inserido']);
         }
         
@@ -88,48 +87,64 @@ final class SolicitacoesControlador extends BaseControlador
      * @roles: Administrador, Funcionário
      */
 
-    public function aceitarSolicitacoes(): array
+    public function aceitarSolicitacao(): array
     {
-       // if($this->receptaculo->validarAutenticacao(1)){
-        $id_funcionario = 2;
-        $id_solicitacao = $this->post('id_solicitacao');
-        $vl_status = 1;
-        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = ?  WHERE id_solicitacao = ?");
+        if (!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'cargo_insuficiente']);
+        }
 
-        
-        if($updateSolicitacao ->execute([$vl_status,$id_solicitacao])){
+        $usuario = $this->receptaculo->autenticador->usuario();
 
-            $ConsultaSolicitacaoVl_status1 = PDO::preparar("SELECT * FROM usuarios_solicitacoes WHERE vl_status = ?");
-        
-            $ConsultaSolicitacaoVl_status1 -> execute([$vl_status]);
-            $solicitacao = $ConsultaSolicitacaoVl_status1 -> fetch(\PDO::FETCH_ASSOC);
-            $ConsultarValorMaterial = PDO::preparar("SELECT * FROM materiais WHERE id_material = ?");
-            $ConsultarValorMaterial ->execute([$solicitacao['id_material']]);
+        $idFuncionario = $usuario['id'];
+        $idSolicitacao = $this->post('id_solicitacao');
 
-            $material = $ConsultarValorMaterial ->fetch(\PDO::FETCH_ASSOC);
+        $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, usuarios.id_usuario, nm_usuario, nm_residuo, nm_material, qt_material, vl_status, vl_eco, dt_solicitacao FROM usuarios_solicitacoes 
+            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
+            JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
+            JOIN residuos ON residuos.id_residuo = materiais.id_residuo
+            WHERE id_solicitacao = ?");
+        $consultaSolicitacao->execute([$idSolicitacao]);
+        $consultaSolicitacaoUsuario = $consultaSolicitacao->fetch(\PDO::FETCH_ASSOC);
 
+        if (!$consultaSolicitacaoUsuario)
+        {
+            return $this->responder(['codigo' => 'solicitacao_inexistente']);
+        }
 
+        $statusSolicitacao = $consultaSolicitacaoUsuario['vl_status'];
 
-            $vl_ecorecebido = $solicitacao['qt_material']  * $material['vl_eco'];
-            $id_materialRecebimento = $solicitacao['id_material'];
-            $id_usuarioRecebimento = $solicitacao['id_usuario'];
-            $qt_materialRecebimento = $solicitacao['qt_material'];
-            $dt_recebimentos = date('d/m/Y H:i');
+        if ($statusSolicitacao != 0)
+        {
+            return $this->responder(['codigo' => $statusSolicitacao == 1 ?
+                'solicitacao_ja_aprovada' : 'solicitacao_ja_negada']);
+        }
 
-           
+        $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = 1  WHERE id_solicitacao = ?");
+        if ($updateSolicitacao->execute([$idSolicitacao]))
+        {
+            $idSolicitacao = $consultaSolicitacaoUsuario['id_solicitacao'];
+
+            $idUsuario = $consultaSolicitacaoUsuario['id_usuario'];
+            $quantidadeMaterial = $consultaSolicitacaoUsuario['qt_material'];
+            $valorEco = $consultaSolicitacaoUsuario['vl_eco'];
+
+            $consultaCambio = PDO::preparar("SELECT vl_brl FROM cambio");
+            $consultaCambio->execute();
+            $resultadoCambio = $consultaCambio->fetch(\PDO::FETCH_ASSOC);
+
+            $valorCambioBrl = $resultadoCambio['vl_brl'];
+
+            $ecoRecebido = $valorEco * $quantidadeMaterial;
+            $realRecebido = $valorCambioBrl * $valorEco;
+
+            $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_solicitacao, id_usuario, id_funcionario, vl_ecorecebido, vl_realrecebido, dt_recebimento) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
             
-            $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_material,id_usuario,id_funcionario,qt_material,vl_ecorecebido,dt_recebimento) VALUES (?,?,?,?,?,?)");
-
-            var_dump($solicitacao);
-            var_dump($material);
-            if ($inserirRecebimento->execute([$id_materialRecebimento, $id_usuarioRecebimento, $id_funcionario, $qt_materialRecebimento, $vl_ecorecebido, $dt_recebimentos])) {
+            if($inserirRecebimento->execute([$idSolicitacao, $idUsuario, $idFuncionario, $ecoRecebido, $realRecebido]))
+            {
                 return $this->responder(['codigo' => 'aprovado']);
             }
         }
-
-        
-
-       // }
         return $this->responder(['codigo' => 'falha']);
     }
     
@@ -151,7 +166,7 @@ final class SolicitacoesControlador extends BaseControlador
 
         $usuarioId = $usuario['id'];
 
-        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
+        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
             WHERE usuarios_solicitacoes.id_usuario = ? ORDER BY usuarios_solicitacoes.dt_solicitacao DESC",

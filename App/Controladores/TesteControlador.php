@@ -9,7 +9,9 @@ final class TesteControlador extends BaseControlador
 {
     public function teste(): array
     {
-        return $this->responder(['text' => 'Isso é um teste']);
+        $consulta = PDO::preparar("SELECT vl_brl FROM cambio");
+        $consulta->execute();
+        return $this->responder(['text' => $consulta->fetch(\PDO::FETCH_ASSOC)]);
     }
 
     public function testarChave(): array

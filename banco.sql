@@ -5,6 +5,12 @@ CREATE TABLE IF NOT EXISTS residuos (
 	PRIMARY KEY(id_residuo)
 );
 
+CREATE TABLE IF NOT EXISTS cambio (
+	vl_brl FLOAT
+);
+
+INSERT INTO cambio VALUES (4.99);
+
 INSERT INTO residuos (nm_residuo) VALUES ('Papel / Papelão');
 INSERT INTO residuos (nm_residuo) VALUES ('Plástico');
 INSERT INTO residuos (nm_residuo) VALUES ('Metal');
@@ -125,28 +131,26 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	id_solicitacao INT GENERATED ALWAYS AS IDENTITY,
 	id_material INT,
 	id_usuario INT,
-	id_endereco INT,
 	qt_material FLOAT,
 	vl_status INT,
 	dt_solicitacao TIMESTAMP,
 
 	PRIMARY KEY(id_solicitacao),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
-	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
-	FOREIGN KEY(id_endereco) REFERENCES usuarios_enderecos(id_endereco)
+	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
 
 CREATE TABLE IF NOT EXISTS recebimentos (
 	id_recebimento INT GENERATED ALWAYS AS IDENTITY,
-	id_material INT,
+	id_solicitacao INT,
 	id_usuario INT,
 	id_funcionario INT,
-	qt_material FLOAT,
 	vl_ecorecebido FLOAT,
+	vl_realrecebido FLOAT,
 	dt_recebimento TIMESTAMP,
 
 	PRIMARY KEY(id_recebimento),
-	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
+	FOREIGN KEY(id_solicitacao) REFERENCES usuarios_solicitacoes(id_solicitacao),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
 	FOREIGN KEY(id_funcionario) REFERENCES usuarios(id_usuario)
 );
