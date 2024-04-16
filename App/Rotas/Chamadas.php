@@ -11,5 +11,7 @@ class Chamadas
 
     public $put = NULL;
 
+    public $options = NULL;
+
     public $delete = NULL;
 }

@@ -42,8 +42,8 @@ final class SolicitacoesControlador extends BaseControlador
         if($inserirSolicitacoes -> execute([$id_material,$id_usuario,$quantidade,$vl_status,$dt_solicitacoes])){
             return $this->responder(['codigo' => 'inserido']);
         }
-        
        // }
+        }
         return $this->responder(['codigo' => 'falha']);
     }
 
