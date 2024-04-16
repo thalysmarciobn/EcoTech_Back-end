@@ -61,7 +61,7 @@ class PDO
         return self::$pdo->prepare($query, $opcoes);
     }
 
-    public static function paginacao($sql, $parametros, $pagina = 1, $porPagina = 50)
+    public static function paginacao($sql, $parametros = [], $pagina = 1, $porPagina = 50)
     {
         $query = self::preparar($sql);
         $query->execute($parametros);

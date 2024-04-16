@@ -12,12 +12,19 @@ final class SolicitacoesControlador extends BaseControlador
      * @summary: Lista os um solicitações
      * @roles: Administrador, Funcionário
      */
-    public static function listaSolicitacoes(): array
+    public function listaSolicitacoes(): array
     {
-        $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
-        $consulta->execute();
+        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
+            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
+            JOIN residuos ON residuos.id_residuo = materiais.id_residuo
+            ORDER BY usuarios_solicitacoes.dt_solicitacao DESC");
+            
+        return $this->responder([
+            'codigo' => 'recebido',
+            'dados' => $consultaSolicitacoes
+        ]);
 
-        return $this->responder($consulta->fetchAll());
+        return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
     }
 
     /**
@@ -118,10 +125,6 @@ final class SolicitacoesControlador extends BaseControlador
             if ($inserirRecebimento->execute([$id_materialRecebimento, $id_usuarioRecebimento, $id_funcionario, $qt_materialRecebimento, $vl_ecorecebido, $dt_recebimentos])) {
                 return $this->responder(['codigo' => 'aprovado']);
             }
-
-
-
-           
         }
 
         
@@ -134,8 +137,8 @@ final class SolicitacoesControlador extends BaseControlador
      /**
      * @author: Antonio Jorge
      * @created: 15/04/2024
-     * @summary: lista de Solicitação do usuario
-     * @roles: Administrador, Funcionário
+     * @summary: Lista de Solicitação do usuario
+     * @roles: Usuário
      */
     public function listaUsuario(): array
     {
@@ -148,16 +151,15 @@ final class SolicitacoesControlador extends BaseControlador
 
         $usuarioId = $usuario['id'];
 
-        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao,nm_residuo,nm_material,qt_material,vl_status,dt_solicitacao FROM usuarios_solicitacoes 
+        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
-            JOIN residuos ON residuos.id_residuo = materiais.id_residuo WHERE usuarios_solicitacoes.id_usuario = ?",
+            JOIN residuos ON residuos.id_residuo = materiais.id_residuo
+            WHERE usuarios_solicitacoes.id_usuario = ? ORDER BY usuarios_solicitacoes.dt_solicitacao DESC",
             [$usuarioId]);
             
-            return $this->responder([
-                'codigo' => 'recebido',
-                'dados' => $consultaSolicitacoesUsuarios
-            ]);
-
-        return $this->responder(['codigo' => 'falha']);
+        return $this->responder([
+            'codigo' => 'recebido',
+            'dados' => $consultaSolicitacoesUsuarios
+        ]);
     }
 }
