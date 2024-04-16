@@ -43,10 +43,12 @@ $app->rota(MATERIAIS . 'lista', 'GET', [MateriaisControlador::class, 'listaMater
 $app->rota(MATERIAIS . 'adicionar', 'POST', [MateriaisControlador::class, 'adicionarMaterial']);
 $app->rota(MATERIAIS . 'remover', 'POST', [MateriaisControlador::class, 'removerMaterial']);
 
-// Rotas para Materias
+// Rotas para Solicitações
 $app->rota(SOLICITACOES . 'listaUsuario', 'GET', [SolicitacoesControlador::class, 'listaSolicitacoesUsuario']);
+$app->rota(SOLICITACOES . 'lista', 'GET', [SolicitacoesControlador::class, 'listaSolicitacoes']);
 $app->rota(SOLICITACOES . 'adicionar', 'POST', [SolicitacoesControlador::class, 'adcionarSolicitacoes']);
-$app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitaSolicitacoes']);
+$app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitarSolicitacoes']);
+$app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacoes']);
 
 
 // Execução da aplicação
