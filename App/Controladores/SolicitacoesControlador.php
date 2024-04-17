@@ -44,26 +44,53 @@ final class SolicitacoesControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $usuarioId = $usuario['id'];
-        $nomeMaterial = $this->post('nm_material');
-        $quantidadeMaterial = $this->post('qt_material');
-        $dataSolicitacao = date('d/m/Y H:i');
 
-        $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material     = ?");
-        $consultaMaterial->execute([$nomeMaterial]);
+        $lista = $this->post('lista_materiais');
+        $jsonLista = json_decode($lista, true);
+        
+        $inserirMateriais = [];
 
-        $consultaSolicitacaoMaterial = $consultaMaterial->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$consultaSolicitacaoMaterial)
+        foreach ($jsonLista as $material)
         {
-            return $this->responder(['codigo' => 'material_inexistente']);
+            if (!isset($material['nm_material']) || !$material['qt_material'])
+            {
+                return $this->responder(['codigo' => 'falha']);
+            }
+
+            $nomeMaterial = $material['nm_material'];
+            $quantidadeMaterial = $material['qt_material'];
+            $dataSolicitacao = date('d/m/Y H:i');
+
+            $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material = ?");
+            $consultaMaterial->execute([$nomeMaterial]);
+
+            $consultaSolicitacaoMaterial = $consultaMaterial->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$consultaSolicitacaoMaterial)
+            {
+                return $this->responder(['codigo' => 'material_inexistente']);
+            }
+
+            $idMaterial = $consultaSolicitacaoMaterial['id_material'];
+            array_push($inserirMateriais, [$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao]);
         }
 
-        $idMaterial = $consultaSolicitacaoMaterial['id_material'];
-
-        $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, 0, ?)");
-        if($inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao])){
+        $insercoes = 0;
+        PDO::iniciarTransacao();
+        foreach ($inserirMateriais as $inserir)
+        {
+            $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, 0, ?)");
+            if($inserirSolicitacoes->execute($inserir))
+            {
+                $insercoes++;
+            }
+        }
+        if ($insercoes == count($inserirMateriais))
+        {
+            PDO::entregarTransacao();
             return $this->responder(['codigo' => 'inserido']);
         }
+        PDO::reverterTransacao();
         
         return $this->responder(['codigo' => 'falha']);
     }
