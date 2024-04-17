@@ -72,7 +72,8 @@ CREATE TABLE IF NOT EXISTS produtos (
 	PRIMARY KEY(id_produto)
 );
 
-INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 300);
+INSERT INTO produtos (nm_produto, ds_produto, nm_imagem, vl_eco, qt_produto) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 'https://img.elo7.com.br/product/600x380/415A6C1/caneca-flork-essa-e-a-minha-caneca-nao-mexa-caneca-floral.jpg', 300, 20);
+INSERT INTO produtos (nm_produto, ds_produto, nm_imagem, vl_eco, qt_produto) VALUES ('Carrinho', 'Uma carrinho', 'http://192.168.0.168:5500/src/uploads-products/carro.webp', 300, 20);
 
 CREATE TABLE IF NOT EXISTS usuarios (
 	id_usuario INT GENERATED ALWAYS AS IDENTITY,

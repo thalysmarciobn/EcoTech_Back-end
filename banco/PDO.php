@@ -11,7 +11,7 @@ class PDO
 
     private static function conectar(): void
     {
-        $servidor = '192.168.0.135';
+        $servidor = '127.0.0.1';
         $banco = 'eco';
         $usuario = 'postgres';
         $senha = '123456';
