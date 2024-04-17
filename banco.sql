@@ -74,11 +74,12 @@ CREATE TABLE IF NOT EXISTS produtos (
 	nm_produto VARCHAR(255),
 	ds_produto VARCHAR(255),
 	vl_eco FLOAT,
+	qt_produto INT,
 
 	PRIMARY KEY(id_produto)
 );
 
-INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 300);
+INSERT INTO produtos (nm_produto, ds_produto, vl_eco,qt_produto) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 300,10);
 
 CREATE TABLE IF NOT EXISTS usuarios (
 	id_usuario INT GENERATED ALWAYS AS IDENTITY,
