@@ -44,10 +44,21 @@ final class SolicitacoesControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $usuarioId = $usuario['id'];
-
-        $idMaterial = $this->post('id_material');
+        $nomeMaterial = $this->post('nm_material');
         $quantidadeMaterial = $this->post('qt_material');
         $dataSolicitacao = date('d/m/Y H:i');
+
+        $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material     = ?");
+        $consultaMaterial->execute([$nomeMaterial]);
+
+        $consultaSolicitacaoMaterial = $consultaMaterial->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$consultaSolicitacaoMaterial)
+        {
+            return $this->responder(['codigo' => 'material_inexistente']);
+        }
+
+        $idMaterial = $consultaSolicitacaoMaterial['id_material'];
 
         $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, 0, ?)");
         if($inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao])){
@@ -107,7 +118,6 @@ final class SolicitacoesControlador extends BaseControlador
      * @summary: Aceita Solicitação
      * @roles: Administrador, Funcionário
      */
-
     public function aceitarSolicitacao(): array
     {
         if (!$this->receptaculo->validarAutenticacao(1))
