@@ -60,6 +60,8 @@ $app->rota(SOLICITACOES . 'lista', 'OPTIONS', [SolicitacoesControlador::class, '
 $app->rota(SOLICITACOES . 'aceitar', 'POST', [SolicitacoesControlador::class, 'aceitarSolicitacao']);
 $app->rota(SOLICITACOES . 'negar', 'POST', [SolicitacoesControlador::class, 'negarSolicitacao']);
 
+$app->rota(SOLICITACOES . 'listaPessoa', 'POST', [SolicitacoesControlador::class, 'listaPessoaMaterial']);
+
 
 // Execução da aplicação
 $app->rodar();

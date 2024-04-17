@@ -8,16 +8,33 @@ use Banco\PDO;
 final class ProdutosControlador extends BaseControlador
 {
     /**
-     * @author: Thalys Márcio
-     * @created: 12/04/2024
+     * @author: Antonio Jorge
+     * @created: 17/04/2024
      * @summary: Retornar a lista de produtos
      * @roles: Administrador, Funcionário, Usuário
      */
     public function listaProdutos(): array
     {
         $paginaAtual = $this->get('pagina');
-        
-        return $this->responder(PDO::paginacao('SELECT * FROM produtos'));
+        $consultaBRL = PDO::preparar("SELECT * FROM cambio");
+        $consultaBRL ->execute();
+        $retorno = $consultaBRL -> fetch(\PDO::FETCH_ASSOC);
+
+        $consultaProduto = $this->responder(PDO::paginacao('SELECT * FROM produtos'));
+        $cont=0;
+        $Produtos;
+        foreach($consultaProduto['lista'] as $produto)
+        {
+            $valorEco = $consultaProduto['lista'][$cont]['vl_eco'];
+
+            $valorRetonado = $valorEco * $retorno["vl_brl"];
+            $produto['vl_brl'] =  $valorRetonado;
+            $consultaProduto['lista'][$cont] =  $produto;
+            $cont++;
+        }
+
+        return $this->responder($consultaProduto);
+       
     }
 
     /**
