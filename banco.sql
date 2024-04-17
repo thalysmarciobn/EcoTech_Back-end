@@ -5,6 +5,12 @@ CREATE TABLE IF NOT EXISTS residuos (
 	PRIMARY KEY(id_residuo)
 );
 
+CREATE TABLE IF NOT EXISTS cambio (
+	vl_brl FLOAT
+);
+
+INSERT INTO cambio VALUES (4.99);
+
 INSERT INTO residuos (nm_residuo) VALUES ('Papel / Papelão');
 INSERT INTO residuos (nm_residuo) VALUES ('Plástico');
 INSERT INTO residuos (nm_residuo) VALUES ('Metal');
@@ -67,7 +73,9 @@ CREATE TABLE IF NOT EXISTS produtos (
 	id_produto INT GENERATED ALWAYS AS IDENTITY,
 	nm_produto VARCHAR(255),
 	ds_produto VARCHAR(255),
+	nm_imagem VARCHAR(255),
 	vl_eco FLOAT,
+	qt_produto INT,
 
 	PRIMARY KEY(id_produto)
 );
@@ -86,7 +94,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 	PRIMARY KEY(id_usuario)
 );
 
-INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('test3@teste.com', 'Teste', '827ccb0eea8a706c4c34a16891f84e7b', 0, 0);
+INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('teste@teste.com', 'Teste', '827ccb0eea8a706c4c34a16891f84e7b', 0, 0);
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('funcionario@teste.com', 'Funcionário', '827ccb0eea8a706c4c34a16891f84e7b', 0, 1);
 INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES ('admin@teste.com', 'Administrador', '827ccb0eea8a706c4c34a16891f84e7b', 0, 2);
 
@@ -135,20 +143,30 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
 
+INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (1,1,23,0,'2024-04-17 13:30:00');
+INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (2,1,9,0,'2024-09-27 22:00:00');
+INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (3,1,57,0,'2023-05-01 17:10:00');
+INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (1,1,140,0,'2024-01-21 01:02:50');
+
 CREATE TABLE IF NOT EXISTS recebimentos (
 	id_recebimento INT GENERATED ALWAYS AS IDENTITY,
-	id_material INT,
+	id_solicitacao INT,
 	id_usuario INT,
 	id_funcionario INT,
-	qt_material FLOAT,
 	vl_ecorecebido FLOAT,
+	vl_realrecebido FLOAT,
 	dt_recebimento TIMESTAMP,
 
 	PRIMARY KEY(id_recebimento),
-	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
+	FOREIGN KEY(id_solicitacao) REFERENCES usuarios_solicitacoes(id_solicitacao),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
 	FOREIGN KEY(id_funcionario) REFERENCES usuarios(id_usuario)
 );
+
+INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (22,1,2,918.16,184,'2024-04-17 15:30:00');
+INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (23,1,2,543.91,109,'2024-04-17 15:30:00');
+INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (24,1,2,853.29,171,'2024-04-17 15:30:00');
+
 
 CREATE TABLE IF NOT EXISTS sessoes (
 	id_sessao INT GENERATED ALWAYS AS IDENTITY,

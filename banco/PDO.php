@@ -61,19 +61,16 @@ class PDO
         return self::$pdo->prepare($query, $opcoes);
     }
 
-    public static function paginacao($tabela, $coluna, $pagina, $porPagina)
+    public static function paginacao($sql, $parametros = [], $pagina = 1, $porPagina = 50)
     {
-        $consulta = self::preparar("SELECT COUNT(*) FROM $tabela");
-        $consulta->execute();
+        $query = self::preparar($sql);
+        $query->execute($parametros);
 
-        $quantidadeItens = $consulta->fetchColumn();
+        $quantidadeItens = $query->rowCount();
         $totalPaginas = ceil($quantidadeItens / $porPagina);
 
         $pagina = isset($pagina) ? $pagina : 1;
         $limiteInicial = ($pagina - 1) * $porPagina;
-
-        $query = self::$pdo->query("SELECT * FROM $tabela ORDER BY $coluna DESC LIMIT $porPagina OFFSET $limiteInicial");
-        $query->execute();
 
         $dados = $query->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -81,7 +78,7 @@ class PDO
         $paginaAnterior = ($pagina > 1) ? $pagina - 1 : null;
 
         return [
-            'dados' => $dados,
+            'lista' => $dados,
             'pagina' => $pagina,
             'proxima_pagina' => $proximaPagina,
             'pagina_anterior' => $paginaAnterior
