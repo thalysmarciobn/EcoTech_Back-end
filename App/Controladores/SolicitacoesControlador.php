@@ -30,6 +30,42 @@ final class SolicitacoesControlador extends BaseControlador
 
     /**
      * @author: Antonio Jorge
+     * @created: 17/04/2024
+     * @summary: Retornar a lista de pessoa especifica e seus materias entregue
+     * @roles: Administrador, Funcionário, Usuário
+     */
+    public function listaPessoaMaterial()
+    {   
+        $idPessoa = $this->post('id_usuario');
+        $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
+            JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
+            JOIN materiais m ON m.id_material = us.id_material
+            JOIN residuos re ON re.id_residuo = m.id_residuo
+            WHERE r.id_usuario = ?");
+        $consultaValores->execute([$idPessoa]);
+        
+        return $this->responder($consultaValores->fetchAll(\PDO::FETCH_ASSOC));
+    }
+    
+    /**
+     * @author: Antonio Jorge
+     * @created: 17/04/2024
+     * @summary: Retornar a lista de todas as pessoas e seus materias entregue
+     * @roles: Administrador, Funcionário
+     */
+    public function listaPessoaFuncionarioMaterial()
+    {
+        $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
+            JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
+            JOIN materiais m ON m.id_material = us.id_material
+            JOIN residuos re ON re.id_residuo = m.id_residuo");
+        $consultaValores->execute([]);
+        
+        return $this->responder($consultaValores->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
+    /**
+     * @author: Antonio Jorge
      * @created: 15/04/2024
      * @summary: Adicionar Solicitação
      * @roles: Usuário
