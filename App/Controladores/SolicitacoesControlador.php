@@ -59,6 +59,12 @@ final class SolicitacoesControlador extends BaseControlador
 
             $nomeMaterial = $material['nm_material'];
             $quantidadeMaterial = $material['qt_material'];
+
+            if (!is_numeric($quantidadeMaterial))
+            {
+                return $this->responder(['codigo' => 'falha']);
+            }
+            
             $dataSolicitacao = date('d/m/Y H:i');
 
             $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material = ?");
