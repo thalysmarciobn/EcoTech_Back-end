@@ -131,7 +131,7 @@ class Aplicacao
             if ($metodo == "OPTIONS")
             {
                 $funcaoMetodo = $this->metodosValidosDeChamadas["GET"];
-                $retorno->get = ['classe' => $classeInstanciada, 'metodo' => $funcao]; 
+                $retorno->$funcaoMetodo = ['classe' => $classeInstanciada, 'metodo' => $funcao]; 
             }
         }
         else
@@ -173,7 +173,10 @@ class Aplicacao
                 throw new Exception('Método não pode ser instanciado: ' . $metodoInstanciado, 1);
             }
             
-            $retorno = $funcaoMetodo->invoke($classeInstanciada);
+            if ($metodoInstanciado != "OPTIONS")
+            {
+                $retorno = $funcaoMetodo->invoke($classeInstanciada);
+            }
 
             if (is_array($retorno))
             {

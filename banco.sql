@@ -5,6 +5,12 @@ CREATE TABLE IF NOT EXISTS residuos (
 	PRIMARY KEY(id_residuo)
 );
 
+CREATE TABLE IF NOT EXISTS cambio (
+	vl_brl FLOAT
+);
+
+INSERT INTO cambio VALUES (4.99);
+
 INSERT INTO residuos (nm_residuo) VALUES ('Papel / Papelão');
 INSERT INTO residuos (nm_residuo) VALUES ('Plástico');
 INSERT INTO residuos (nm_residuo) VALUES ('Metal');
@@ -67,12 +73,14 @@ CREATE TABLE IF NOT EXISTS produtos (
 	id_produto INT GENERATED ALWAYS AS IDENTITY,
 	nm_produto VARCHAR(255),
 	ds_produto VARCHAR(255),
+	nm_imagem VARCHAR(255),
 	vl_eco FLOAT,
+	qt_produto INT,
 
 	PRIMARY KEY(id_produto)
 );
 
-INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 300);
+INSERT INTO produtos (nm_produto, ds_produto, nm_imagem, vl_eco, qt_produto) VALUES ('Caneca 300 ml', 'Uma caneca de 300 ml', 'https://img.elo7.com.br/product/600x380/415A6C1/caneca-flork-essa-e-a-minha-caneca-nao-mexa-caneca-floral.jpg', 300, 20);
 
 CREATE TABLE IF NOT EXISTS usuarios (
 	id_usuario INT GENERATED ALWAYS AS IDENTITY,
@@ -136,15 +144,15 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 
 CREATE TABLE IF NOT EXISTS recebimentos (
 	id_recebimento INT GENERATED ALWAYS AS IDENTITY,
-	id_material INT,
+	id_solicitacao INT,
 	id_usuario INT,
 	id_funcionario INT,
-	qt_material FLOAT,
 	vl_ecorecebido FLOAT,
+	vl_realrecebido FLOAT,
 	dt_recebimento TIMESTAMP,
 
 	PRIMARY KEY(id_recebimento),
-	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
+	FOREIGN KEY(id_solicitacao) REFERENCES usuarios_solicitacoes(id_solicitacao),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
 	FOREIGN KEY(id_funcionario) REFERENCES usuarios(id_usuario)
 );
