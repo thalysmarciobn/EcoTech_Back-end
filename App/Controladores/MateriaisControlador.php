@@ -15,6 +15,10 @@ final class MateriaisControlador extends BaseControlador
      */
     public function listaMateriais(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais");
         $consulta->execute();
 
@@ -49,6 +53,10 @@ final class MateriaisControlador extends BaseControlador
      */
     public function adicionarMaterial(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $nomeMaterial = $this->post('nm_material');
         $valorEco = $this->post('vl_eco');
         $idResiduo = $this->post('id_residuo');
@@ -88,6 +96,10 @@ final class MateriaisControlador extends BaseControlador
      */
     public function removerMaterial(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $nomeMaterial = $this->post('nm_material');
 
         $removerMaterial = PDO::preparar("DELETE FROM materiais WHERE nm_material = ?");
