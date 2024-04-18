@@ -15,6 +15,10 @@ final class ProdutosControlador extends BaseControlador
      */
     public function listaProdutos(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $paginaAtual = $this->get('pagina');
         $consultaBRL = PDO::preparar("SELECT * FROM cambio");
         $consultaBRL ->execute();
@@ -48,6 +52,10 @@ final class ProdutosControlador extends BaseControlador
      */
     public function adicionarProduto(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $nomeProduto = $this->post('nm_produto');
         $descricaoProduto = $this->post('ds_produto');
         $valorEco = $this->post('vl_eco');
@@ -81,6 +89,10 @@ final class ProdutosControlador extends BaseControlador
      */
     public function atualizarProduto(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $idProduto = $this->post('id_produto');
         $nomeProduto = $this->post('nm_produto');
         $descricaoProduto = $this->post('ds_produto');
@@ -112,6 +124,10 @@ final class ProdutosControlador extends BaseControlador
      */
     public function removerProduto(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $idProduto = $this->post('id_produto');
 
         $removerProduto = PDO::preparar("DELETE FROM produtos WHERE id_produto = ?");
@@ -132,6 +148,10 @@ final class ProdutosControlador extends BaseControlador
      */
     public function comprarProduto(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $idProduto = $this->post('id_produto');
         $idUsuario = 1; // $this->receptaculo->autenticador->usuario()
 

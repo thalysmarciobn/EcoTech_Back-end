@@ -14,6 +14,10 @@ final class SolicitacoesControlador extends BaseControlador
      */
     public function listaSolicitacoes(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
@@ -36,6 +40,10 @@ final class SolicitacoesControlador extends BaseControlador
      */
     public function listaPessoaMaterial()
     {   
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $idPessoa = $this->post('id_usuario');
         $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
@@ -55,6 +63,10 @@ final class SolicitacoesControlador extends BaseControlador
      */
     public function listaPessoaFuncionarioMaterial()
     {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
         $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
             JOIN materiais m ON m.id_material = us.id_material
