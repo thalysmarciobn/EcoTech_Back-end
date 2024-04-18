@@ -22,7 +22,7 @@ final class SolicitacoesControlador extends BaseControlador
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            ORDER BY usuarios_solicitacoes.dt_solicitacao DESC");
+            ORDER BY usuarios_solicitacoes.id_solicitacao DESC");
             
         return $this->responder([
             'codigo' => 'recebido',
@@ -298,7 +298,8 @@ final class SolicitacoesControlador extends BaseControlador
         $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            WHERE usuarios_solicitacoes.id_usuario = ? ORDER BY usuarios_solicitacoes.dt_solicitacao DESC",
+            WHERE usuarios_solicitacoes.id_usuario = ?
+            ORDER BY usuarios_solicitacoes.id_solicitacao DESC",
             [$usuarioId]);
             
         return $this->responder([

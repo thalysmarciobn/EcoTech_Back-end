@@ -182,7 +182,7 @@ final class ProdutosControlador extends BaseControlador
 
             foreach ($arrayListaProdutos as $idProduto)
             {
-                $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
+                $consultaProduto = PDO::preparar("SELECT nm_produto, id_produto, vl_eco, qt_produto FROM produtos WHERE id_produto = ?");
                 $consultaProduto->execute([$idProduto]);
                 $resultadoProduto = $consultaProduto->fetch(\PDO::FETCH_ASSOC);
 
@@ -190,6 +190,14 @@ final class ProdutosControlador extends BaseControlador
                 {
                     PDO::reverterTransacao();
                     return $this->responder(['codigo' => 'produto_inexistente'], 404);
+                }
+
+                if ($resultadoProduto['qt_produto'] <= 0)
+                {
+                    PDO::reverterTransacao();
+                    return $this->responder([
+                        'codigo' => 'produto_sem_estoque',
+                        'nm_produto' => $resultadoProduto['nm_produto']]);
                 }
                 
                 array_push($arrayCompras, $resultadoProduto);
@@ -218,6 +226,15 @@ final class ProdutosControlador extends BaseControlador
             {
                 $idProduto = $produto['id_produto'];
                 $valorEco = $produto['vl_eco'];
+
+                $atualizarProduto = PDO::preparar("UPDATE produtos SET qt_produto = qt_produto - 1 WHERE id_produto = ?");
+                $executarAtualizarProduto = $atualizarProduto->execute([$idUsuario]);
+
+                if (!$executarAtualizarProduto)
+                {
+                    PDO::reverterTransacao();
+                    return $this->responder(['codigo' => 'falha_atualizar_produto']);
+                }
 
                 $inserirCompra = PDO::preparar("INSERT INTO usuarios_compras (id_usuario, id_produto, qt_ecovalor) VALUES (?, ?, ?)");
                 $compraExecutada = $inserirCompra->execute([$idUsuario, $idProduto, $valorEco]);
