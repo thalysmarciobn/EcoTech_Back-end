@@ -32,8 +32,8 @@ class Receptaculo
             $sessaoChaveUsuario = $sessaoBanco['nm_chave'];
 
             return $usuarioId == $sessaoIdUsuario &&
-            $usuarioCargo >= $cargo &&
-            $usuarioChave == $sessaoChaveUsuario;
+                $usuarioCargo >= $cargo &&
+                $usuarioChave == $sessaoChaveUsuario;
         }
         return false;
     }
