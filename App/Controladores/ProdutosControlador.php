@@ -152,12 +152,17 @@ final class ProdutosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $idProduto = $this->post('id_produto');
 
         $usuario = $this->receptaculo->autenticador->usuario();
         $idUsuario = $usuario['id'];
+        
+        $lista = $this->post('lista_produtos');
+        $jsonLista = json_decode($lista, true);
 
-        $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
+        foreach($jsonLista as $produto){
+
+        $idproduto = $produto['id_produto'];
+        $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco,qt_produto FROM produtos WHERE id_produto = ?");
         $consultaProduto->execute([$idProduto]);
         $resultadoProduto = $consultaProduto->fetch(\PDO::FETCH_ASSOC);
 
@@ -167,6 +172,8 @@ final class ProdutosControlador extends BaseControlador
         }
 
         $ecoValor = $resultadoProduto['vl_eco'];
+        $qt_produto = $resultadoProduto['qt_produto'];
+        $id_produto = $resultadoProduto['id_produto'];
 
         $verificarSaldo = PDO::preparar("SELECT qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
         $verificarSaldo->execute([$idUsuario]);
@@ -193,6 +200,10 @@ final class ProdutosControlador extends BaseControlador
 
             $inserirCompra = PDO::preparar("INSERT INTO usuarios_compras (id_usuario, id_produto, qt_ecovalor) VALUES (?, ?, ?)");
             $compraExecutada = $inserirCompra->execute([$idUsuario, $idProduto, $ecoValor]);
+
+            $updateProduto = PDO::preparar("UPDATE produtos SET qt_produto = ? WHERE id_produto = ?");
+            $updateProduto->execute([$qt_produto-1,$id_produto]);
+
             
             if ($compraExecutada)
             {
@@ -213,6 +224,14 @@ final class ProdutosControlador extends BaseControlador
         {
             PDO::reverterTransacao();
         }
+
+
+        
+        }
+        
+
+
+        
         return $this->responder(['codigo' => 'falha'], 500);
     }
 }
