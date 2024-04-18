@@ -152,67 +152,94 @@ final class ProdutosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $idProduto = $this->post('id_produto');
+        $listaProdutos = $this->post('lista_produtos');
 
         $usuario = $this->receptaculo->autenticador->usuario();
         $idUsuario = $usuario['id'];
 
-        $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
-        $consultaProduto->execute([$idProduto]);
-        $resultadoProduto = $consultaProduto->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$resultadoProduto)
-        {
-            return $this->responder(['codigo' => 'produto_inexistente'], 404);
-        }
-
-        $ecoValor = $resultadoProduto['vl_eco'];
-
-        $verificarSaldo = PDO::preparar("SELECT qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
-        $verificarSaldo->execute([$idUsuario]);
-        $resultadoSaldo = $verificarSaldo->fetch(\PDO::FETCH_ASSOC);
-
-        if (!$resultadoSaldo)
-        {
-            return $this->responder(['codigo' => 'usuario_inexistente'], 404);
-        }
-
-        $saldoUsuario = $resultadoSaldo['qt_ecosaldo'];
-        if ($saldoUsuario <= $ecoValor)
-        {
-            return $this->responder(['codigo' => 'saldo_insuficiente']);
-        }
+        $jsonListaProdutos = json_decode($listaProdutos, true);
+        $arrayListaProdutos = $jsonListaProdutos['lista'];
 
         try
         {
             PDO::iniciarTransacao();
 
-            $novoSaldo = $saldoUsuario - $ecoValor;
+            $verificarSaldo = PDO::preparar("SELECT qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
+            $verificarSaldo->execute([$idUsuario]);
+            $resultadoSaldo = $verificarSaldo->fetch(\PDO::FETCH_ASSOC);
+
+            if (!$resultadoSaldo)
+            {
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'usuario_inexistente'], 404);
+            }
+
+            $totalSaldoUsuario = $resultadoSaldo['qt_ecosaldo'];
+
+            $totalADebitar = 0;
+
+            $arrayCompras = [];
+
+            foreach ($arrayListaProdutos as $idProduto)
+            {
+                $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
+                $consultaProduto->execute([$idProduto]);
+                $resultadoProduto = $consultaProduto->fetch(\PDO::FETCH_ASSOC);
+
+                if (!$resultadoProduto)
+                {
+                    PDO::reverterTransacao();
+                    return $this->responder(['codigo' => 'produto_inexistente'], 404);
+                }
+                
+                array_push($arrayCompras, $resultadoProduto);
+
+                $totalADebitar += $resultadoProduto['vl_eco'];
+            }
+
+            if ($totalSaldoUsuario < $totalADebitar)
+            {
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'saldo_insuficiente']);
+            }
+
+            $novoSaldo = $totalSaldoUsuario - $totalADebitar;
+
             $atualizarSaldo = PDO::preparar("UPDATE usuarios SET qt_ecosaldo = ? WHERE id_usuario = ?");
             $executarAtualizarSaldo = $atualizarSaldo->execute([$novoSaldo, $idUsuario]);
 
-            $inserirCompra = PDO::preparar("INSERT INTO usuarios_compras (id_usuario, id_produto, qt_ecovalor) VALUES (?, ?, ?)");
-            $compraExecutada = $inserirCompra->execute([$idUsuario, $idProduto, $ecoValor]);
-            
-            if ($compraExecutada)
+            if (!$executarAtualizarSaldo)
             {
-                PDO::entregarTransacao();
-
-                return $this->responder([
-                    'codigo' => 'debitado',
-                    'debitado' => $ecoValor,
-                    'saldo' => $novoSaldo
-                ]);
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'falha_saldo']);
             }
 
-            PDO::reverterTransacao();
-            
-            return $this->responder(['codigo' => 'falha'], 500);
+            foreach ($arrayCompras as $produto)
+            {
+                $idProduto = $produto['id_produto'];
+                $valorEco = $produto['vl_eco'];
+
+                $inserirCompra = PDO::preparar("INSERT INTO usuarios_compras (id_usuario, id_produto, qt_ecovalor) VALUES (?, ?, ?)");
+                $compraExecutada = $inserirCompra->execute([$idUsuario, $idProduto, $valorEco]);
+
+                if (!$compraExecutada)
+                {
+                    PDO::reverterTransacao();
+                    return $this->responder(['codigo' => 'falha_log_compra']);
+                }
+            }
+            PDO::entregarTransacao();
+
+            return $this->responder([
+                'codigo' => 'debitado',
+                'debitado' => $totalADebitar,
+                'saldo' => $novoSaldo
+            ]);
         }
         catch (\Exception $e)
         {
             PDO::reverterTransacao();
         }
-        return $this->responder(['codigo' => 'falha'], 500);
+        return $this->responder(['codigo' => 'falha']);
     }
 }
