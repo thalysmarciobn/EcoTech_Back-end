@@ -53,14 +53,10 @@ $app->rota(MATERIAIS . 'remover', ['POST', 'OPTIONS'], [MateriaisControlador::cl
 
 // Rotas para Solicitações
 $app->rota(SOLICITACOES . 'adicionar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'adicionarSolicitacao']);
-$app->rota(SOLICITACOES . 'adicionar', ['OPTIONS', 'OPTIONS'], [SolicitacoesControlador::class, 'adicionarSolicitacao']);
-
 $app->rota(SOLICITACOES . 'listaUsuario', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaUsuario']);
 $app->rota(SOLICITACOES . 'listaUsuario', ['OPTIONS', 'OPTIONS'], [SolicitacoesControlador::class, 'listaUsuario']);
 
 $app->rota(SOLICITACOES . 'lista', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaSolicitacoes']);
-$app->rota(SOLICITACOES . 'lista', ['OPTIONS', 'OPTIONS'], [SolicitacoesControlador::class, 'listaSolicitacoes']);
-
 $app->rota(SOLICITACOES . 'aceitar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'aceitarSolicitacao']);
 $app->rota(SOLICITACOES . 'negar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'negarSolicitacao']);
 

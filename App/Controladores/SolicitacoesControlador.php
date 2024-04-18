@@ -89,6 +89,11 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
+        if (empty($this->post('lista_materiais')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $usuarioId = $usuario['id'];
@@ -161,6 +166,11 @@ final class SolicitacoesControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'cargo_insuficiente']);
         }
+
+        if (empty($this->post('id_solicitacao')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
         
         $usuario = $this->receptaculo->autenticador->usuario();
 
@@ -204,6 +214,11 @@ final class SolicitacoesControlador extends BaseControlador
         if (!$this->receptaculo->validarAutenticacao(1))
         {
             return $this->responder(['codigo' => 'cargo_insuficiente']);
+        }
+
+        if (empty($this->post('id_solicitacao')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
         }
 
         $usuario = $this->receptaculo->autenticador->usuario();

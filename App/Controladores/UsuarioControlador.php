@@ -15,6 +15,11 @@ final class UsuarioControlador extends BaseControlador
      */
     public function logar(): array
     {
+        if (empty($this->post('nm_email')) || empty($this->post('nm_senha')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $emailUsuario = $this->post('nm_email');
         $senhaUsuario = $this->post('nm_senha');
 
@@ -97,6 +102,13 @@ final class UsuarioControlador extends BaseControlador
      */
     public function cadastrar(): array
     {
+        if (empty($this->post('nm_email')) ||
+            empty($this->post('nm_usuario')) ||
+            empty($this->post('nm_senha')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $emailUsuario = $this->post('nm_email');
         $nomeUsuaurio = $this->post('nm_usuario');
         $senhaUsuario = $this->post('nm_senha');

@@ -38,6 +38,12 @@ final class ResiduosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
+        if (empty($this->post('nm_residuo')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $nomeResiduo = $this->post('nm_residuo');
 
         $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
@@ -71,6 +77,12 @@ final class ResiduosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
+        if (empty($this->post('nm_residuo') || empty($this->post('nm_novo'))))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $nome = $this->post('nm_residuo');
         $nomeNovo = $this->post('nm_novo');
 
@@ -114,6 +126,12 @@ final class ResiduosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
+        if (empty($this->post('nm_residuo')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $nome = $this->post('nm_residuo');
 
         $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nm_residuo = ?");
