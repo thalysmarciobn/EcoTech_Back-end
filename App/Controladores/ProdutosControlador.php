@@ -153,7 +153,9 @@ final class ProdutosControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
         $idProduto = $this->post('id_produto');
-        $idUsuario = 1; // $this->receptaculo->autenticador->usuario()
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+        $idUsuario = $usuario['id'];
 
         $consultaProduto = PDO::preparar("SELECT id_produto, vl_eco FROM produtos WHERE id_produto = ?");
         $consultaProduto->execute([$idProduto]);
