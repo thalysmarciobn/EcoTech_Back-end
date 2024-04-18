@@ -41,7 +41,17 @@ class Aplicacao
         $classeInstanciada = $this->obterClasseInstanciada($classe);
         $retorno = $this->obterRetornoChamada($rota);
         
-        $this->processarMetodo($metodo, $retorno, $classeInstanciada, $funcao);
+        if (!is_array($metodo))
+        {
+            $this->processarMetodo($metodo, $retorno, $classeInstanciada, $funcao);
+        }
+        else
+        {
+            foreach ($metodo as $item)
+            {
+                $this->processarMetodo($item, $retorno, $classeInstanciada, $funcao);
+            }
+        }
     }
     
     /**
@@ -172,6 +182,8 @@ class Aplicacao
             {
                 throw new Exception('Método não pode ser instanciado: ' . $metodoInstanciado, 1);
             }
+
+            $retorno = [];
             
             if ($metodoInstanciado != "OPTIONS")
             {
