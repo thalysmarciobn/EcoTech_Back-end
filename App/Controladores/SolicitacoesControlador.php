@@ -266,15 +266,12 @@ final class SolicitacoesControlador extends BaseControlador
             $ecoRecebido = $valorEco * $quantidadeMaterial;
             $realRecebido = $valorCambioBrl * $valorEco;
 
-            $valorEcoNovo = $valorEco + $ecoRecebido;
-
             $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_solicitacao, id_usuario, id_funcionario, vl_ecorecebido, vl_realrecebido, dt_recebimento) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
-            
+
             if($inserirRecebimento->execute([$idSolicitacao, $idUsuario, $idFuncionario, $ecoRecebido, $realRecebido]))
             {
-                PDO::preparar("UPDATE FROM usuarios SET qt_ecosaldo = ? WHERE id_usuario = ?");
-                PDO::execute([$valorEcoNovo, $idUsuario]);
-
+                $atualizarUsuario = PDO::preparar("UPDATE usuarios SET qt_ecosaldo = qt_ecosaldo + ? WHERE id_usuario = ?");
+                $atualizarUsuario->execute([$ecoRecebido, $idUsuario]);
                 return $this->responder(['codigo' => 'aprovado']);
             }
         }
