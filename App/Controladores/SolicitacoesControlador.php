@@ -18,6 +18,7 @@ final class SolicitacoesControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
         $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
@@ -67,8 +68,9 @@ final class SolicitacoesControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
+        $consultaValores = PDO::preparar("SELECT r.id_usuario, usu.nm_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
+            JOIN usuarios  usu ON usu.id_usuario = r.id_usuario
             JOIN materiais m ON m.id_material = us.id_material
             JOIN residuos re ON re.id_residuo = m.id_residuo");
         $consultaValores->execute([]);

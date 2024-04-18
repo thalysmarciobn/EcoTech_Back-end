@@ -27,6 +27,7 @@ $app->rota(API . 'teste/chave', 'GET', [TesteControlador::class, 'testarChave'])
 $app->rota(API . 'logar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'logar']);
 $app->rota(API . 'cadastrar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'cadastrar']);
 $app->rota(USUARIO . 'enderecos', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'enderecos']);
+$app->rota(USUARIO . 'lista', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'listaUsuarios']);
 
 // Rotas para Produtos
 $app->rota(PRODUTOS . 'lista', ['GET', 'OPTIONS'], [ProdutosControlador::class, 'listaProdutos']);
@@ -37,13 +38,10 @@ $app->rota(PRODUTOS . 'comprar', ['POST', 'OPTIONS'], [ProdutosControlador::clas
 
 // Rotas para Resíduos
 $app->rota(RESIDUOS . 'lista', ['GET', 'OPTIONS'], [ResiduosControlador::class, 'listaResiduos']);
-$app->rota(RESIDUOS . 'lista', ['OPTIONS', 'OPTIONS'], [ResiduosControlador::class, 'listaResiduos']);
 
 $app->rota(RESIDUOS . 'adicionar', ['POST', 'OPTIONS'], [ResiduosControlador::class, 'adicionarResiduo']);
-$app->rota(RESIDUOS . 'atualizar', ['OPTIONS', 'OPTIONS'], [ResiduosControlador::class, 'atualizarResiduo']);
 
 $app->rota(RESIDUOS . 'remover', ['POST', 'OPTIONS'], [ResiduosControlador::class, 'removerResiduo']);
-$app->rota(RESIDUOS . 'remover', ['OPTIONS', 'OPTIONS'], [ResiduosControlador::class, 'removerResiduo']);
 
 // Rotas para Materiais
 $app->rota(MATERIAIS . 'lista', ['GET', 'OPTIONS'], [MateriaisControlador::class, 'listaMateriais']);

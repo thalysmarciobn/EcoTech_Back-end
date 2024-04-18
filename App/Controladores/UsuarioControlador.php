@@ -7,6 +7,37 @@ use Banco\PDO;
 
 final class UsuarioControlador extends BaseControlador
 {
+    
+    
+    public function listaUsuarios(): array
+    {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $consultaUsuario = PDO::preparar("SELECT usuarios.id_usuario, nm_usuario, 
+                COUNT(DISTINCT recebimentos.id_recebimento) AS qt_recebimentos,
+                COUNT(DISTINCT usuarios_solicitacoes.id_solicitacao) AS qt_solicitacoes,
+                SUM(recebimentos.vl_ecorecebido) AS total_ecorecebido,
+                SUM(recebimentos.vl_realrecebido) AS total_realrecebido
+            FROM 
+                usuarios
+            LEFT JOIN 
+                recebimentos ON recebimentos.id_usuario = usuarios.id_usuario
+            LEFT JOIN 
+                usuarios_solicitacoes ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
+            WHERE 
+                nu_cargo = 0
+            GROUP BY 
+                usuarios.id_usuario, nm_usuario
+            ORDER BY 
+                usuarios.id_usuario DESC");
+        $consultaUsuario->execute();
+
+        return $this->responder($consultaUsuario->fetchAll(\PDO::FETCH_ASSOC));
+    }
+
     /**
      * @author: Thalys Márcio
      * @created: 12/04/2024
@@ -109,15 +140,7 @@ final class UsuarioControlador extends BaseControlador
             return $this->responder(['codigo' => 'vazio']);
         }
 
-        $emailUsuario = $this->post('nm_email');
-        $nomeUsuaurio = $this->post('nm_usuario');
-        $senhaUsuario = $this->post('nm_senha');
-        
-        $nomeRua = $this->post('nm_rua');
-        $nomeBairro = $this->post('nm_bairro');
-        $nomeCidade = $this->post('nm_cidade');
-        $nomeEstado = $this->post('nm_estado');
-        $numeroCasa = $this->post('nu_casa');
+        $enderecos = $this->post('lista_enderecos');
 
         $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ?");
         $consultaUsuario->execute([$emailUsuario]);
@@ -133,19 +156,26 @@ final class UsuarioControlador extends BaseControlador
             
             $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
             
+            $emailUsuario = $this->post('nm_email');
+            $nomeUsuaurio = $this->post('nm_usuario');
             $senhaCriptografada = md5($senhaUsuario);
             
             if ($inserirUsuario->execute([$emailUsuario, $nomeUsuaurio, $senhaCriptografada, 0, 0]))
             {
-                $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa) VALUES (?, ?, ?, ?, ?, ?)");
                 
-                $idUsuario = PDO::ultimaIdInserida();
+                $jsonLista = json_decode($enderecos, true);
 
-                if (!$inserirUsuarioEndereco->execute([$idUsuario, $nomeRua, $nomeBairro, $nomeCidade, $nomeEstado, $numeroCasa]))
-                {
-                    PDO::reverterTransacao();
+                foreach ($jsonLista as $endereco) {
+                    $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa) VALUES (?, ?, ?, ?, ?, ?)");
+                    
+                    $idUsuario = PDO::ultimaIdInserida();
 
-                    return $this->responder(['codigo' => 'falha']);
+                    if (!$inserirUsuarioEndereco->execute([$idUsuario, $endereco['rua'], $endereco['bairro'], $endereco['cidade'], $endereco['estado'], 0]))
+                    {
+                        PDO::reverterTransacao();
+
+                        return $this->responder(['codigo' => 'falha']);
+                    }
                 }
 
                 PDO::entregarTransacao();

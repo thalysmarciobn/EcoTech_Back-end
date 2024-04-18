@@ -58,6 +58,8 @@ final class ProdutosControlador extends BaseControlador
         }
         $nomeProduto = $this->post('nm_produto');
         $descricaoProduto = $this->post('ds_produto');
+        $linkImagem = $this->post('nm_imagem');
+        $quantidadeEstoque = $this->post('qt_estoque');
         $valorEco = $this->post('vl_eco');
 
         $consultaProduto = PDO::preparar("SELECT nm_produto FROM produtos WHERE nm_produto = ?");
@@ -68,8 +70,8 @@ final class ProdutosControlador extends BaseControlador
             return $this->responder(['codigo' => 'existente']);
         }
 
-        $inserirProduto = PDO::preparar("INSERT INTO produtos (nm_produto, ds_produto, vl_eco) VALUES (?, ?, ?)");
-        if ($inserirProduto->execute([$nomeProduto, $descricaoProduto, $valorEco]))
+        $inserirProduto = PDO::preparar("INSERT INTO produtos (nm_produto, ds_produto, nm_imagem, vl_eco, qt_produto) VALUES (?, ?, ?, ?, ?)");
+        if ($inserirProduto->execute([$nomeProduto, $descricaoProduto, $linkImagem, $valorEco, $quantidadeEstoque]))
         {
             return $this->responder(['codigo' => 'inserido']);
         }
