@@ -161,10 +161,9 @@ final class ProdutosControlador extends BaseControlador
 
         $jsonListaProdutos = json_decode($listaProdutos, true);
 
+        PDO::iniciarTransacao();
         try
         {
-            PDO::iniciarTransacao();
-
             $verificarSaldo = PDO::preparar("SELECT qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
             $verificarSaldo->execute([$idUsuario]);
             $resultadoSaldo = $verificarSaldo->fetch(\PDO::FETCH_ASSOC);
@@ -210,7 +209,9 @@ final class ProdutosControlador extends BaseControlador
             if ($totalSaldoUsuario < $totalADebitar)
             {
                 PDO::reverterTransacao();
-                return $this->responder(['codigo' => 'saldo_insuficiente']);
+                return $this->responder([
+                    'codigo' => 'saldo_insuficiente',
+                    'nm_produto' => $resultadoProduto['nm_produto']]);
             }
 
             $novoSaldo = $totalSaldoUsuario - $totalADebitar;

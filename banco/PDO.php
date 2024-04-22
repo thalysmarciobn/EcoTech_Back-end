@@ -14,7 +14,7 @@ class PDO
         $servidor = '127.0.0.1';
         $banco = 'eco';
         $usuario = 'postgres';
-        $senha = '12345';
+        $senha = '123456';
 
         $dsn = "pgsql:host=$servidor;port=5432;dbname=$banco;";
         
@@ -66,7 +66,10 @@ class PDO
         $offset = ($pagina - 1) * $porPagina;
     
         $queryTotal = self::preparar("SELECT COUNT(*) FROM ($sql) AS total");
-        $queryTotal->execute($parametros);
+        foreach ($parametros as $key => $value) {
+            $queryTotal->bindParam($key, $value[0], $value[1]);
+        }
+        $queryTotal->execute();
         $quantidadeItens = $queryTotal->fetchColumn();
     
         if ($quantidadeItens <= $offset) {
@@ -81,9 +84,12 @@ class PDO
         $sql .= " LIMIT $porPagina OFFSET $offset";
     
         $query = self::preparar($sql);
-        $query->execute($parametros);
+        foreach ($parametros as $key => $value) {
+            $query->bindParam($key, $value[0], $value[1]);
+        }
+        $query->execute();
     
-        $dados = $query->fetchAll(\PDO::FETCH_ASSOC);
+        $dados = $query->fetchAll(NativoPDO::FETCH_ASSOC);
     
         $totalPaginas = ceil($quantidadeItens / $porPagina);
     

@@ -217,6 +217,7 @@ final class UsuarioControlador extends BaseControlador
         }
 
         $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
+        $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
             
         $usuario = $this->receptaculo->autenticador->usuario();
 
@@ -225,9 +226,19 @@ final class UsuarioControlador extends BaseControlador
         $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            WHERE usuarios_solicitacoes.id_usuario = ?
+            WHERE usuarios_solicitacoes.id_usuario = :usuario
+            AND (((case when vl_status = 0 then 'Pendente'
+                        when vl_status = 1 then 'Aprovado'
+                        when vl_status = -1 then 'Negado'
+                    end) ilike '%' || :pesquisa || '%')
+            OR (nm_material ilike '%' || :pesquisa || '%')
+            OR :pesquisa is null)
+
             ORDER BY usuarios_solicitacoes.id_solicitacao DESC",
-            [$usuarioId], $pagina, 15);
+            [
+                ':usuario' => [$usuarioId, \PDO::PARAM_INT],
+                ':pesquisa' => [$pesquisa, \PDO::PARAM_STR]
+            ], $pagina, 15);
 
             //AND (nm_residuo LIKE ? OR nm_material LIKE ?) [$usuarioId, "%$procurar%", "%$procurar%"]);
             
