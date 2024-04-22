@@ -19,18 +19,30 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
+        $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
+        $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
+
+        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
-            JOIN usuarios ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            ORDER BY usuarios_solicitacoes.id_solicitacao DESC");
+            JOIN usuarios ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
+            AND (((case when vl_status = 0 then 'Pendente'
+                        when vl_status = 1 then 'Aprovado'
+                        when vl_status = -1 then 'Negado'
+                    end) ilike '%' || :pesquisa || '%')
+            OR (nm_codigo ilike '%' || :pesquisa || '%')
+            OR (nm_material ilike '%' || :pesquisa || '%')
+            OR :pesquisa is null)
+
+            ORDER BY usuarios_solicitacoes.id_solicitacao DESC",
+            [
+                ':pesquisa' => [$pesquisa, \PDO::PARAM_STR]
+            ], $pagina, 15);
             
         return $this->responder([
             'codigo' => 'recebido',
             'dados' => $consultaSolicitacoes
         ]);
-
-        return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
     }
 
     /**
@@ -76,85 +88,6 @@ final class SolicitacoesControlador extends BaseControlador
         $consultaValores->execute([]);
         
         return $this->responder($consultaValores->fetchAll(\PDO::FETCH_ASSOC));
-    }
-
-    /**
-     * @author: Antonio Jorge
-     * @created: 15/04/2024
-     * @summary: Adicionar Solicitação
-     * @roles: Usuário
-     */
-     public function adicionarSolicitacao(): array
-     {
-        if(!$this->receptaculo->validarAutenticacao(0))
-        {
-            return $this->responder(['codigo' => 'login_necessario']);
-        }
-
-        if (is_null($this->post('lista_materiais')))
-        {
-            return $this->responder(['codigo' => 'vazio']);
-        }
-
-        $usuario = $this->receptaculo->autenticador->usuario();
-
-        $usuarioId = $usuario['id_usuario'];
-
-        $lista = $this->post('lista_materiais');
-        $jsonLista = json_decode($lista, true);
-
-        $chaveAleatoria = $this->receptaculo->gerarCodigo();
-
-        PDO::iniciarTransacao();
-        try {
-            foreach ($jsonLista as $material)
-            {
-                if (!isset($material['nm_material']) || !$material['qt_material'])
-                {
-                    PDO::reverterTransacao();
-                    return $this->responder(['codigo' => 'falha']);
-                }
-
-                $nomeMaterial = $material['nm_material'];
-                $quantidadeMaterial = $material['qt_material'];
-
-                if (!is_numeric($quantidadeMaterial))
-                {
-                    PDO::reverterTransacao();
-                    return $this->responder(['codigo' => 'falha']);
-                }
-                
-                $dataSolicitacao = date('d/m/Y H:i');
-
-                $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material = ?");
-                $consultaMaterial->execute([$nomeMaterial]);
-
-                $consultaSolicitacaoMaterial = $consultaMaterial->fetch(\PDO::FETCH_ASSOC);
-
-                if (!$consultaSolicitacaoMaterial)
-                {
-                    PDO::reverterTransacao();
-                    return $this->responder(['codigo' => 'material_inexistente']);
-                }
-
-                $idMaterial = $consultaSolicitacaoMaterial['id_material'];
-
-                $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao, nm_codigo) VALUES (?, ?, ?, 0, ?, ?)");
-                $resultadoInsercao = $inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao, $chaveAleatoria]);
-                if (!$resultadoInsercao)
-                {
-                    PDO::reverterTransacao();
-                    return $this->responder(['codigo' => 'falha']);
-                }
-            }
-            PDO::entregarTransacao();
-            return $this->responder(['codigo' => 'inserido']);
-        }
-        catch (\Exception $e)
-        {
-            PDO::reverterTransacao();
-            return $this->responder(['codigo' => 'falha']);
-        }
     }
 
     /**

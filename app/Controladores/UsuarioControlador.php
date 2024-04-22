@@ -125,7 +125,7 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
-        $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento FROM usuarios_enderecos WHERE id_usuario = ?");
+        $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep FROM usuarios_enderecos WHERE id_usuario = ?");
         if ($enderecos->execute([$usuarioId]))
         {
             return $this->responder([
@@ -135,6 +135,55 @@ final class UsuarioControlador extends BaseControlador
         }
 
         return $this->responder(['codigo' => 'falha']);
+    }
+
+    public function editarEndereco(): array {
+        
+        if (is_null($this->post('id_endereco')) ||
+            is_null($this->post('nm_estado')) ||
+            is_null($this->post('nm_cep')) ||
+            is_null($this->post('nm_bairro')) ||
+            is_null($this->post('nm_rua')) ||
+            is_null($this->post('nm_complemento')) ||
+            is_null($this->post('nu_casa')) ||
+            is_null($this->post('nm_estado')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id_usuario'];
+
+        $id_endereco = $this->post('id_endereco');
+        $nm_estado = $this->post('nm_estado');
+        $nm_cidade = $this->post('nm_cidade');
+        $nm_cep = $this->post('nm_cep');
+        $nm_bairro = $this->post('nm_bairro');
+        $nm_rua = $this->post('nm_rua');
+        $nm_complemento = $this->post('nm_complemento');
+        $nu_casa = $this->post('nu_casa');
+
+        $consultaEndereco = PDO::preparar("SELECT id_endereco, id_endereco FROM usuarios_enderecos WHERE id_endereco = ? AND id_usuario = ?");
+        $consultaEndereco->execute([$id_endereco, $usuarioId]);
+        $resultadoEndereco = $consultaEndereco->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resultadoEndereco) {
+            return $this->responder(['codigo' => 'endereco_nao_encontrado']);
+        }
+
+        try {
+            $atualizarEndereco = PDO::preparar("UPDATE usuarios_enderecos SET nm_estado = ?, nm_cidade = ?, nm_cep = ?, nm_bairro = ?, nm_rua = ?, nm_complemento = ?, nu_casa = ? WHERE id_endereco = ? AND id_usuario = ?");
+            $atualizarEndereco->execute([$nm_estado, $nm_cidade, $nm_cep, $nm_bairro, $nm_rua, $nm_complemento, $nu_casa, $id_endereco, $usuarioId]);
+            return $this->responder(['codigo' => 'atualizado']);
+        } catch (\Exception $e) {
+            return $this->responder(['codigo' => 'falha']);
+        }
     }
 
     /**
@@ -231,6 +280,7 @@ final class UsuarioControlador extends BaseControlador
                         when vl_status = 1 then 'Aprovado'
                         when vl_status = -1 then 'Negado'
                     end) ilike '%' || :pesquisa || '%')
+            OR (nm_codigo ilike '%' || :pesquisa || '%')
             OR (nm_material ilike '%' || :pesquisa || '%')
             OR :pesquisa is null)
 
@@ -294,4 +344,83 @@ final class UsuarioControlador extends BaseControlador
             'codigo' => 'falha'
         ]);
     }
+
+    /**
+     * @author: Antonio Jorge
+     * @created: 15/04/2024
+     * @summary: Adicionar Solicitação
+     * @roles: Usuário
+     */
+    public function adicionarSolicitacao(): array
+    {
+       if(!$this->receptaculo->validarAutenticacao(0))
+       {
+           return $this->responder(['codigo' => 'login_necessario']);
+       }
+
+       if (is_null($this->post('lista_materiais')))
+       {
+           return $this->responder(['codigo' => 'vazio']);
+       }
+
+       $usuario = $this->receptaculo->autenticador->usuario();
+
+       $usuarioId = $usuario['id_usuario'];
+
+       $lista = $this->post('lista_materiais');
+       $jsonLista = json_decode($lista, true);
+
+       $chaveAleatoria = $this->receptaculo->gerarCodigo();
+
+       PDO::iniciarTransacao();
+       try {
+           foreach ($jsonLista as $material)
+           {
+               if (!isset($material['nm_material']) || !$material['qt_material'])
+               {
+                   PDO::reverterTransacao();
+                   return $this->responder(['codigo' => 'falha']);
+               }
+
+               $nomeMaterial = $material['nm_material'];
+               $quantidadeMaterial = $material['qt_material'];
+
+               if (!is_numeric($quantidadeMaterial))
+               {
+                   PDO::reverterTransacao();
+                   return $this->responder(['codigo' => 'falha']);
+               }
+               
+               $dataSolicitacao = date('d/m/Y H:i');
+
+               $consultaMaterial = PDO::preparar("SELECT * FROM materiais WHERE nm_material = ?");
+               $consultaMaterial->execute([$nomeMaterial]);
+
+               $consultaSolicitacaoMaterial = $consultaMaterial->fetch(\PDO::FETCH_ASSOC);
+
+               if (!$consultaSolicitacaoMaterial)
+               {
+                   PDO::reverterTransacao();
+                   return $this->responder(['codigo' => 'material_inexistente']);
+               }
+
+               $idMaterial = $consultaSolicitacaoMaterial['id_material'];
+
+               $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao, nm_codigo) VALUES (?, ?, ?, 0, ?, ?)");
+               $resultadoInsercao = $inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao, $chaveAleatoria]);
+               if (!$resultadoInsercao)
+               {
+                   PDO::reverterTransacao();
+                   return $this->responder(['codigo' => 'falha']);
+               }
+           }
+           PDO::entregarTransacao();
+           return $this->responder(['codigo' => 'inserido']);
+       }
+       catch (\Exception $e)
+       {
+           PDO::reverterTransacao();
+           return $this->responder(['codigo' => 'falha']);
+       }
+   }
 }

@@ -52,7 +52,7 @@ class Receptaculo
         $validarSessao->execute([$usuarioId]);
 
         $sessaoBanco = $validarSessao->fetch(\PDO::FETCH_ASSOC);
-        if ($sessaoBanco)
+        if (!empty($sessaoBanco))
         {
             $sessaoIdUsuario = $sessaoBanco['id_usuario'];
             $sessaoChaveUsuario = $sessaoBanco['nm_chave'];

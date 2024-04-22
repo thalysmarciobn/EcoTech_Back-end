@@ -32,6 +32,7 @@ $app->rota(USUARIO . 'solicitacoes', ['GET', 'OPTIONS'], [UsuarioControlador::cl
 $app->rota(USUARIO . 'dados', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'dados']);
 
 $app->rota(USUARIO . 'enderecos', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'enderecos']);
+$app->rota(USUARIO . 'editarEndereco', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'editarEndereco']);
 
 $app->rota(USUARIO . 'lista', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'listaUsuarios']);
 
