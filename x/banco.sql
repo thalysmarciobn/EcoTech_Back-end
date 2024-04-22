@@ -137,16 +137,12 @@ CREATE TABLE IF NOT EXISTS usuarios_solicitacoes (
 	qt_material FLOAT,
 	vl_status INT,
 	dt_solicitacao TIMESTAMP,
+	nm_codigo VARCHAR(255),
 
 	PRIMARY KEY(id_solicitacao),
 	FOREIGN KEY(id_material) REFERENCES materiais(id_material),
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario)
 );
-
-INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (1,1,23,0,'2024-04-17 13:30:00');
-INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (2,1,9,0,'2024-09-27 22:00:00');
-INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (3,1,57,0,'2023-05-01 17:10:00');
-INSERT INTO usuarios_solicitacoes (id_material,id_usuario,qt_material,vl_status,dt_solicitacao) VALUES (1,1,140,0,'2024-01-21 01:02:50');
 
 CREATE TABLE IF NOT EXISTS recebimentos (
 	id_recebimento INT GENERATED ALWAYS AS IDENTITY,
@@ -162,10 +158,6 @@ CREATE TABLE IF NOT EXISTS recebimentos (
 	FOREIGN KEY(id_usuario) REFERENCES usuarios(id_usuario),
 	FOREIGN KEY(id_funcionario) REFERENCES usuarios(id_usuario)
 );
-
-INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (22,1,2,918.16,184,'2024-04-17 15:30:00');
-INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (23,1,2,543.91,109,'2024-04-17 15:30:00');
-INSERT INTO recebimentos (id_solicitacao,id_usuario,id_funcionario,vl_ecorecebido,vl_realrecebido,dt_recebimento) VALUES (24,1,2,853.29,171,'2024-04-17 15:30:00');
 
 
 CREATE TABLE IF NOT EXISTS sessoes (

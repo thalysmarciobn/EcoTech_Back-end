@@ -7,7 +7,23 @@ use Banco\PDO;
 
 final class UsuarioControlador extends BaseControlador
 {
-    
+    public function checar(): array
+    {
+        $usuario = $this->receptaculo->autenticador->usuario();
+        $idUsuario = $usuario['id_usuario'];
+        $chave = $usuario['chave'];
+
+        $checarSessaoLivre = PDO::preparar("SELECT * FROM sessoes WHERE id_usuario = ? AND nm_chave = ? AND dt_expiracao > CURRENT_TIMESTAMP");
+        $checarSessaoLivre->execute([$idUsuario, $chave]);
+
+        $contemSessao = $checarSessaoLivre->fetch();
+
+        if (!$contemSessao)
+        {
+            return $this->responder(['codigo' => 'deslogado']);
+        }
+        return $this->responder(['codigo' => 'logado', 'usuario' => $this->receptaculo->autenticador->usuario()]);
+    }
     
     public function listaUsuarios(): array
     {
@@ -56,7 +72,7 @@ final class UsuarioControlador extends BaseControlador
 
         $senhaCriptografada = md5($senhaUsuario);
 
-        $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ? and nm_senha = ?");
+        $consultaUsuario = PDO::preparar("SELECT id_usuario, nm_usuario, nm_email, nu_cargo, qt_ecosaldo FROM usuarios WHERE nm_email = ? and nm_senha = ?");
         $consultaUsuario->execute([$emailUsuario, $senhaCriptografada]);
 
         $usuario = $consultaUsuario->fetch(\PDO::FETCH_ASSOC);
@@ -66,12 +82,12 @@ final class UsuarioControlador extends BaseControlador
             $idUsuario = $usuario['id_usuario'];
             $nomeUsuario = $usuario['nm_usuario'];
             $cargoUsuario = $usuario['nu_cargo'];
-            $quantidadeEcoSaldo = $usuario['qt_ecosaldo'];
+            $saldoEco = $usuario['qt_ecosaldo'];
 
             $umaHoraFutura = strtotime("+1 hour");
             $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
             
-            [$chaveAleatoria, $chave] = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, $cargoUsuario, $nomeUsuario, $emailUsuario);
+            [$chaveAleatoria, $chave] = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, $cargoUsuario, $nomeUsuario, $emailUsuario, $saldoEco);
 
             $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
             $checarSessaoLivre->execute([$idUsuario]);
@@ -82,9 +98,7 @@ final class UsuarioControlador extends BaseControlador
                 $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
 
                 return $this->responder(['codigo' => 'logado',
-                    'nm_usuario' => $nomeUsuario,
-                    'nu_cargo' => $cargoUsuario,
-                    'qt_ecosaldo' => $quantidadeEcoSaldo,
+                    'usuario' => $usuario,
                     'chave' => $chave]);
             }
 
@@ -92,9 +106,7 @@ final class UsuarioControlador extends BaseControlador
             if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
             {
                 return $this->responder(['codigo' => 'logado',
-                    'nm_usuario' => $nomeUsuario,
-                    'nu_cargo' => $cargoUsuario,
-                    'qt_ecosaldo' => $quantidadeEcoSaldo,
+                    'usuario' => $usuario,
                     'chave' => $chave]);
             }
         }
@@ -111,13 +123,13 @@ final class UsuarioControlador extends BaseControlador
 
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $usuarioId = $usuario['id'];
+        $usuarioId = $usuario['id_usuario'];
 
         $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento FROM usuarios_enderecos WHERE id_usuario = ?");
         if ($enderecos->execute([$usuarioId]))
         {
             return $this->responder([
-                'codigo' => 'sucesso',
+                'codigo' => 'enviado',
                 'enderecos' => $enderecos->fetchAll(\PDO::FETCH_ASSOC)
             ]);
         }
@@ -189,5 +201,86 @@ final class UsuarioControlador extends BaseControlador
         }
 
         return $this->responder(['codigo' => 'falha']);
+    }
+
+    /**
+     * @author: Antonio Jorge
+     * @created: 15/04/2024
+     * @summary: Lista de Solicitação do usuario
+     * @roles: Usuário
+     */
+    public function solicitacoes(): array
+    {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
+            
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id_usuario'];
+
+        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
+            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
+            JOIN residuos ON residuos.id_residuo = materiais.id_residuo
+            WHERE usuarios_solicitacoes.id_usuario = ?
+            ORDER BY usuarios_solicitacoes.id_solicitacao DESC",
+            [$usuarioId], $pagina, 15);
+
+            //AND (nm_residuo LIKE ? OR nm_material LIKE ?) [$usuarioId, "%$procurar%", "%$procurar%"]);
+            
+        return $this->responder([
+            'codigo' => 'recebido',
+            'dados' => $consultaSolicitacoesUsuarios
+        ]);
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 19/04/2024
+     * @summary: Lista de Solicitação do usuario
+     * @roles: Usuário
+     */
+    public function dados(): array
+    {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+            
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id_usuario'];
+
+        $consultarDados = PDO::preparar("SELECT usuarios.id_usuario, nm_usuario, 
+                COALESCE(COUNT(DISTINCT recebimentos.id_recebimento), 0) AS qt_recebimentos,
+                COALESCE(COUNT(DISTINCT usuarios_solicitacoes.id_solicitacao), 0) AS qt_solicitacoes,
+                COALESCE(SUM(recebimentos.vl_ecorecebido), 0) AS total_ecorecebido,
+                COALESCE(SUM(recebimentos.vl_realrecebido), 0) AS total_realrecebido
+            FROM 
+                usuarios
+            LEFT JOIN 
+                recebimentos ON recebimentos.id_usuario = usuarios.id_usuario
+            LEFT JOIN 
+                usuarios_solicitacoes ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
+            WHERE 
+                usuarios.id_usuario = ?
+            GROUP BY 
+                usuarios.id_usuario, nm_usuario");
+        $consultarDados->execute([$usuarioId]);
+
+        $retornoDados = $consultarDados->fetch(\PDO::FETCH_ASSOC);
+        if ($retornoDados)
+        {
+            return $this->responder([
+                'codigo' => 'recebido',
+                'dados' => $retornoDados
+            ]);
+        }
+        return $this->responder([
+            'codigo' => 'falha'
+        ]);
     }
 }

@@ -11,10 +11,11 @@ class Autenticador
     private const FORCA_CHAVE = 16;
 
     private array $dadosUsuario = [
-        'id' => 0,
-        'cargo' => 0,
-        'nome' => NULL,
-        'email' => NULL,
+        'id_usuario' => 0,
+        'nu_cargo' => 0,
+        'nm_usuario' => NULL,
+        'nm_email' => NULL,
+        'qt_ecosaldo' => 0,
         'chave' => NULL
     ];
 
@@ -113,10 +114,11 @@ class Autenticador
         $dados = json_decode($dado, true);
 
         $this->dadosUsuario = [
-            'id' => $dados['id'],
-            'cargo' => $dados['cargo'],
-            'nome' => $dados['nome'],
-            'email' => $dados['email'],
+            'id_usuario' => $dados['id_usuario'],
+            'nu_cargo' => $dados['nu_cargo'],
+            'nm_usuario' => $dados['nm_usuario'],
+            'nm_email' => $dados['nm_email'],
+            'qt_ecosaldo' => $dados['qt_ecosaldo'],
             'chave' => $dados['chave']
         ];
     }
@@ -126,13 +128,14 @@ class Autenticador
      * @created: 14/04/2024
      * @summary: Formata os dados do usuário
      */
-    private function formatarDadosUsuario(int $id, int $cargo, string $nome, string $email, string $chave): string
+    private function formatarDadosUsuario(int $id, int $cargo, string $nome, string $email, int $eco, string $chave): string
     {
         $this->dadosUsuario = [
-            'id' => $id,
-            'cargo' => $cargo,
-            'nome' => $nome,
-            'email' => $email,
+            'id_usuario' => $id,
+            'nu_cargo' => $cargo,
+            'nm_usuario' => $nome,
+            'nm_email' => $email,
+            'qt_ecosaldo' => $eco,
             'chave' => $chave
         ];
 
@@ -144,11 +147,11 @@ class Autenticador
      * @created: 14/04/2024
      * @summary: Gera uma chave de autenticação para a sessão e retorna a chave junto com a cripgorafia dos dados
      */
-    public function gerarChaveAutenticacao(int $id, int $cargo, string $nome, string $email): array
+    public function gerarChaveAutenticacao(int $id, int $cargo, string $nome, string $email, int $eco): array
     {
         $chave = $this->gerarChaveAleatoria();
 
-        $dados = $this->formatarDadosUsuario($id, $cargo, $nome, $email, $chave);
+        $dados = $this->formatarDadosUsuario($id, $cargo, $nome, $email, $eco, $chave);
 
         $criptografado = $this->criptarChave($dados);
 

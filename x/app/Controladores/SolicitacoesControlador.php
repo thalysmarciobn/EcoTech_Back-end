@@ -91,17 +91,19 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        if (empty($this->post('lista_materiais')))
+        if (is_null($this->post('lista_materiais')))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
 
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $usuarioId = $usuario['id'];
+        $usuarioId = $usuario['id_usuario'];
 
         $lista = $this->post('lista_materiais');
         $jsonLista = json_decode($lista, true);
+
+        $chaveAleatoria = $this->receptaculo->gerarCodigo();
 
         PDO::iniciarTransacao();
         try {
@@ -137,23 +139,21 @@ final class SolicitacoesControlador extends BaseControlador
 
                 $idMaterial = $consultaSolicitacaoMaterial['id_material'];
 
-                $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao) VALUES (?, ?, ?, 0, ?)");
-                if (!$inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao]))
+                $inserirSolicitacoes = PDO::preparar("INSERT INTO usuarios_solicitacoes (id_material, id_usuario, qt_material, vl_status, dt_solicitacao, nm_codigo) VALUES (?, ?, ?, 0, ?, ?)");
+                $resultadoInsercao = $inserirSolicitacoes->execute([$idMaterial, $usuarioId, $quantidadeMaterial, $dataSolicitacao, $chaveAleatoria]);
+                if (!$resultadoInsercao)
                 {
                     PDO::reverterTransacao();
                     return $this->responder(['codigo' => 'falha']);
                 }
             }
+            PDO::entregarTransacao();
+            return $this->responder(['codigo' => 'inserido']);
         }
         catch (\Exception $e)
         {
             PDO::reverterTransacao();
             return $this->responder(['codigo' => 'falha']);
-        }
-        finally
-        {
-            PDO::entregarTransacao();
-            return $this->responder(['codigo' => 'inserido']);
         }
     }
 
@@ -278,35 +278,5 @@ final class SolicitacoesControlador extends BaseControlador
             }
         }
         return $this->responder(['codigo' => 'falha']);
-    }
-    
-    /**
-     * @author: Antonio Jorge
-     * @created: 15/04/2024
-     * @summary: Lista de Solicitação do usuario
-     * @roles: Usuário
-     */
-    public function listaUsuario(): array
-    {
-        if(!$this->receptaculo->validarAutenticacao(0))
-        {
-            return $this->responder(['codigo' => 'login_necessario']);
-        }
-            
-        $usuario = $this->receptaculo->autenticador->usuario();
-
-        $usuarioId = $usuario['id'];
-
-        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao FROM usuarios_solicitacoes 
-            JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
-            JOIN residuos ON residuos.id_residuo = materiais.id_residuo
-            WHERE usuarios_solicitacoes.id_usuario = ?
-            ORDER BY usuarios_solicitacoes.id_solicitacao DESC",
-            [$usuarioId]);
-            
-        return $this->responder([
-            'codigo' => 'recebido',
-            'dados' => $consultaSolicitacoesUsuarios
-        ]);
     }
 }

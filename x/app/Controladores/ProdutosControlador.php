@@ -157,10 +157,9 @@ final class ProdutosControlador extends BaseControlador
         $listaProdutos = $this->post('lista_produtos');
 
         $usuario = $this->receptaculo->autenticador->usuario();
-        $idUsuario = $usuario['id'];
+        $idUsuario = $usuario['id_usuario'];
 
         $jsonListaProdutos = json_decode($listaProdutos, true);
-        $arrayListaProdutos = $jsonListaProdutos['lista'];
 
         try
         {
@@ -182,7 +181,7 @@ final class ProdutosControlador extends BaseControlador
 
             $arrayCompras = [];
 
-            foreach ($arrayListaProdutos as $idProduto)
+            foreach ($jsonListaProdutos as $idProduto)
             {
                 $consultaProduto = PDO::preparar("SELECT nm_produto, id_produto, vl_eco, qt_produto FROM produtos WHERE id_produto = ?");
                 $consultaProduto->execute([$idProduto]);
@@ -194,17 +193,18 @@ final class ProdutosControlador extends BaseControlador
                     return $this->responder(['codigo' => 'produto_inexistente'], 404);
                 }
 
-                if ($resultadoProduto['qt_produto'] <= 0)
+                $quantidadeProduto = $resultadoProduto['qt_produto'];
+                if ($quantidadeProduto <= 0)
                 {
                     PDO::reverterTransacao();
                     return $this->responder([
                         'codigo' => 'produto_sem_estoque',
                         'nm_produto' => $resultadoProduto['nm_produto']]);
                 }
-                
-                array_push($arrayCompras, $resultadoProduto);
 
                 $totalADebitar += $resultadoProduto['vl_eco'];
+                
+                $arrayCompras[] = $resultadoProduto;
             }
 
             if ($totalSaldoUsuario < $totalADebitar)
@@ -228,9 +228,17 @@ final class ProdutosControlador extends BaseControlador
             {
                 $idProduto = $produto['id_produto'];
                 $valorEco = $produto['vl_eco'];
+                $qtProduto = $produto['qt_produto'];
+
+                if ($qtProduto == 0) {
+                    PDO::reverterTransacao();
+                    return $this->responder([
+                        'codigo' => 'produto_sem_estoque',
+                        'nm_produto' => $produto['nm_produto']]);
+                }
 
                 $atualizarProduto = PDO::preparar("UPDATE produtos SET qt_produto = qt_produto - 1 WHERE id_produto = ?");
-                $executarAtualizarProduto = $atualizarProduto->execute([$idUsuario]);
+                $executarAtualizarProduto = $atualizarProduto->execute([$idProduto]);
 
                 if (!$executarAtualizarProduto)
                 {

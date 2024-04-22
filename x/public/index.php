@@ -24,9 +24,15 @@ $app->rota(API . 'teste', 'GET', [TesteControlador::class, 'teste']);
 $app->rota(API . 'teste/chave', 'GET', [TesteControlador::class, 'testarChave']);
 
 // Rotas para Usuários
-$app->rota(API . 'logar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'logar']);
-$app->rota(API . 'cadastrar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'cadastrar']);
+$app->rota(USUARIO . 'logar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'logar']);
+$app->rota(USUARIO . 'cadastrar', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'cadastrar']);
+
+$app->rota(USUARIO . 'checar', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'checar']);
+$app->rota(USUARIO . 'solicitacoes', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'solicitacoes']);
+$app->rota(USUARIO . 'dados', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'dados']);
+
 $app->rota(USUARIO . 'enderecos', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'enderecos']);
+
 $app->rota(USUARIO . 'lista', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'listaUsuarios']);
 
 // Rotas para Produtos
@@ -51,8 +57,6 @@ $app->rota(MATERIAIS . 'remover', ['POST', 'OPTIONS'], [MateriaisControlador::cl
 
 // Rotas para Solicitações
 $app->rota(SOLICITACOES . 'adicionar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'adicionarSolicitacao']);
-$app->rota(SOLICITACOES . 'listaUsuario', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaUsuario']);
-$app->rota(SOLICITACOES . 'listaUsuario', ['OPTIONS', 'OPTIONS'], [SolicitacoesControlador::class, 'listaUsuario']);
 
 $app->rota(SOLICITACOES . 'lista', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaSolicitacoes']);
 $app->rota(SOLICITACOES . 'aceitar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'aceitarSolicitacao']);

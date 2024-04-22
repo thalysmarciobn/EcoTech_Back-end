@@ -14,7 +14,7 @@ class PDO
         $servidor = '127.0.0.1';
         $banco = 'eco';
         $usuario = 'postgres';
-        $senha = '123456';
+        $senha = '12345';
 
         $dsn = "pgsql:host=$servidor;port=5432;dbname=$banco;";
         
@@ -61,25 +61,39 @@ class PDO
         return self::$pdo->prepare($query, $opcoes);
     }
 
-    public static function paginacao($sql, $parametros = [], $pagina = 1, $porPagina = 50)
+    public static function paginacao($sql, $parametros = [], $pagina = 1, $porPagina = 10)
     {
+        $offset = ($pagina - 1) * $porPagina;
+    
+        $queryTotal = self::preparar("SELECT COUNT(*) FROM ($sql) AS total");
+        $queryTotal->execute($parametros);
+        $quantidadeItens = $queryTotal->fetchColumn();
+    
+        if ($quantidadeItens <= $offset) {
+            return [
+                'lista' => [],
+                'pagina' => $pagina,
+                'total_paginas' => 0,
+                'proxima_pagina' => null,
+                'pagina_anterior' => ($pagina > 1) ? $pagina - 1 : null
+            ];
+        }
+        $sql .= " LIMIT $porPagina OFFSET $offset";
+    
         $query = self::preparar($sql);
         $query->execute($parametros);
-
-        $quantidadeItens = $query->rowCount();
-        $totalPaginas = ceil($quantidadeItens / $porPagina);
-
-        $pagina = isset($pagina) ? $pagina : 1;
-        $limiteInicial = ($pagina - 1) * $porPagina;
-
+    
         $dados = $query->fetchAll(\PDO::FETCH_ASSOC);
-
+    
+        $totalPaginas = ceil($quantidadeItens / $porPagina);
+    
         $proximaPagina = ($pagina < $totalPaginas) ? $pagina + 1 : null;
         $paginaAnterior = ($pagina > 1) ? $pagina - 1 : null;
-
+    
         return [
             'lista' => $dados,
             'pagina' => $pagina,
+            'total_paginas' => $totalPaginas,
             'proxima_pagina' => $proximaPagina,
             'pagina_anterior' => $paginaAnterior
         ];
