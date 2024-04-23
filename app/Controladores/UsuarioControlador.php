@@ -22,7 +22,21 @@ final class UsuarioControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'deslogado']);
         }
-        return $this->responder(['codigo' => 'logado', 'usuario' => $this->receptaculo->autenticador->usuario()]);
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $idUsuario = $usuario['id_usuario'];
+
+        $consultaUsuario = PDO::preparar("SELECT id_usuario, nm_usuario, nm_email, nu_cargo, qt_ecosaldo FROM usuarios WHERE id_usuario = ?");
+        $consultaUsuario->execute([$idUsuario]);
+
+        $resultadoUsuario = $consultaUsuario->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resultadoUsuario) {
+            return $this->responder(['codigo' => 'usuario_inexistente']);
+        }
+
+        return $this->responder(['codigo' => 'logado', 'usuario' => $resultadoUsuario]);
     }
     
     public function listaUsuarios(): array
@@ -114,6 +128,12 @@ final class UsuarioControlador extends BaseControlador
         return $this->responder(['codigo' => 'falha']);
     }
 
+    /**
+     * @author: Thalys Márcio
+     * @created: 22/04/2024
+     * @summary: Retorna uma lista de endereços do usuário
+     * @roles: Usuário
+     */
     public function enderecos(): array
     {
         if(!$this->receptaculo->validarAutenticacao(0))
@@ -125,8 +145,9 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
-        $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep FROM usuarios_enderecos WHERE id_usuario = ?");
-        if ($enderecos->execute([$usuarioId]))
+        $enderecos = PDO::preparar("SELECT id_endereco, id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep FROM usuarios_enderecos WHERE fl_desativado = false AND id_usuario = ?");
+        $executarEnderecos = $enderecos->execute([$usuarioId]);
+        if ($executarEnderecos)
         {
             return $this->responder([
                 'codigo' => 'enviado',
@@ -137,8 +158,14 @@ final class UsuarioControlador extends BaseControlador
         return $this->responder(['codigo' => 'falha']);
     }
 
-    public function editarEndereco(): array {
-        
+    /**
+     * @author: Thalys Márcio
+     * @created: 23/04/2024
+     * @summary: Edita um endereço do usuário logado
+     * @roles: Usuário
+     */
+    public function editarEndereco(): array
+    {
         if (is_null($this->post('id_endereco')) ||
             is_null($this->post('nm_estado')) ||
             is_null($this->post('nm_cep')) ||
@@ -160,17 +187,17 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
-        $id_endereco = $this->post('id_endereco');
-        $nm_estado = $this->post('nm_estado');
-        $nm_cidade = $this->post('nm_cidade');
-        $nm_cep = $this->post('nm_cep');
-        $nm_bairro = $this->post('nm_bairro');
-        $nm_rua = $this->post('nm_rua');
-        $nm_complemento = $this->post('nm_complemento');
-        $nu_casa = $this->post('nu_casa');
+        $idEndereco = $this->post('id_endereco');
+        $nomeEstado = $this->post('nm_estado');
+        $nomeCidade = $this->post('nm_cidade');
+        $cep = $this->post('nm_cep');
+        $nomeBairro = $this->post('nm_bairro');
+        $nomeRua = $this->post('nm_rua');
+        $complemento = $this->post('nm_complemento');
+        $numeroCasa = $this->post('nu_casa');
 
         $consultaEndereco = PDO::preparar("SELECT id_endereco, id_endereco FROM usuarios_enderecos WHERE id_endereco = ? AND id_usuario = ?");
-        $consultaEndereco->execute([$id_endereco, $usuarioId]);
+        $consultaEndereco->execute([$idEndereco, $usuarioId]);
         $resultadoEndereco = $consultaEndereco->fetch(\PDO::FETCH_ASSOC);
 
         if (!$resultadoEndereco) {
@@ -179,7 +206,49 @@ final class UsuarioControlador extends BaseControlador
 
         try {
             $atualizarEndereco = PDO::preparar("UPDATE usuarios_enderecos SET nm_estado = ?, nm_cidade = ?, nm_cep = ?, nm_bairro = ?, nm_rua = ?, nm_complemento = ?, nu_casa = ? WHERE id_endereco = ? AND id_usuario = ?");
-            $atualizarEndereco->execute([$nm_estado, $nm_cidade, $nm_cep, $nm_bairro, $nm_rua, $nm_complemento, $nu_casa, $id_endereco, $usuarioId]);
+            $atualizarEndereco->execute([$nomeEstado, $nomeCidade, $cep, $nomeBairro, $nomeRua, $complemento, $numeroCasa, $idEndereco, $usuarioId]);
+            return $this->responder(['codigo' => 'atualizado']);
+        } catch (\Exception $e) {
+            return $this->responder(['codigo' => 'falha']);
+        }
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 22/04/2024
+     * @summary: Remove o endereço do usuário logado
+     * @roles: Usuário
+     */
+    public function removerEndereco(): array
+    {
+        if (is_null($this->post('id_endereco')))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id_usuario'];
+
+        $idEndereco = $this->post('id_endereco');
+
+        $consultaEndereco = PDO::preparar("SELECT id_endereco FROM usuarios_enderecos WHERE id_endereco = ? AND id_usuario = ?");
+        $consultaEndereco->execute([$idEndereco, $usuarioId]);
+        $resultadoEndereco = $consultaEndereco->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$resultadoEndereco)
+        {
+            return $this->responder(['codigo' => 'falha']);
+        }
+
+        try {
+            $atualizarEndereco = PDO::preparar("UPDATE usuarios_enderecos SET fl_desativado = true WHERE id_endereco = ? AND id_usuario = ?");
+            $atualizarEndereco->execute([$idEndereco, $usuarioId]);
             return $this->responder(['codigo' => 'atualizado']);
         } catch (\Exception $e) {
             return $this->responder(['codigo' => 'falha']);
@@ -315,21 +384,37 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
-        $consultarDados = PDO::preparar("SELECT usuarios.id_usuario, nm_usuario, 
-                COALESCE(COUNT(DISTINCT recebimentos.id_recebimento), 0) AS qt_recebimentos,
-                COALESCE(COUNT(DISTINCT usuarios_solicitacoes.id_solicitacao), 0) AS qt_solicitacoes,
-                COALESCE(SUM(recebimentos.vl_ecorecebido), 0) AS total_ecorecebido,
-                COALESCE(SUM(recebimentos.vl_realrecebido), 0) AS total_realrecebido
-            FROM 
+        $consultarDados = PDO::preparar("SELECT
+                usuarios.id_usuario,
+                nm_usuario,
+                COALESCE(recebimentos.qt_recebimentos, 0) AS qt_recebimentos,
+                COALESCE(solicitacoes.qt_solicitacoes, 0) AS qt_solicitacoes,
+                COALESCE(recebimentos.total_ecorecebido, 0) AS total_ecorecebido,
+                COALESCE(recebimentos.total_realrecebido, 0) AS total_realrecebido
+            FROM
                 usuarios
-            LEFT JOIN 
-                recebimentos ON recebimentos.id_usuario = usuarios.id_usuario
-            LEFT JOIN 
-                usuarios_solicitacoes ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
-            WHERE 
-                usuarios.id_usuario = ?
-            GROUP BY 
-                usuarios.id_usuario, nm_usuario");
+            LEFT JOIN (
+                SELECT
+                    id_usuario,
+                    COUNT(DISTINCT id_recebimento) AS qt_recebimentos,
+                    COALESCE(SUM(vl_ecorecebido), 0) AS total_ecorecebido,
+                    COALESCE(SUM(vl_realrecebido), 0) AS total_realrecebido
+                FROM
+                    recebimentos
+                GROUP BY
+                    id_usuario
+            ) AS recebimentos ON recebimentos.id_usuario = usuarios.id_usuario
+            LEFT JOIN (
+                SELECT
+                    id_usuario,
+                    COUNT(DISTINCT id_solicitacao) AS qt_solicitacoes
+                FROM
+                    usuarios_solicitacoes
+                GROUP BY
+                    id_usuario
+            ) AS solicitacoes ON solicitacoes.id_usuario = usuarios.id_usuario
+            WHERE
+                usuarios.id_usuario = ?");
         $consultarDados->execute([$usuarioId]);
 
         $retornoDados = $consultarDados->fetch(\PDO::FETCH_ASSOC);

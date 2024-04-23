@@ -72,15 +72,17 @@ final class MateriaisControlador extends BaseControlador
 
         $consultaResiduoId = PDO::preparar("SELECT id_residuo FROM residuos WHERE id_residuo = ?");
         $consultaResiduoId->execute([$idResiduo]);
+        $resultadoResiduo = $consultaResiduoId->fetch(\PDO::FETCH_ASSOC);
 
-        if (!$consultaResiduoId->fetch(\PDO::FETCH_ASSOC))
+        if (!$resultadoResiduo)
         {
             return $this->responder(['codigo' => 'residuo_inexistente']);
         }
 
         $inserirMaterial = PDO::preparar("INSERT INTO materiais (nm_material, vl_eco, id_residuo, sg_medida)
             VALUES (?, ?, ?, ?)");
-        if ($inserirMaterial->execute([$nomeMaterial, $valorEco, $idResiduo, $siglaMedida]))
+        $executarInserirMaterial = $inserirMaterial->execute([$nomeMaterial, $valorEco, $idResiduo, $siglaMedida]);
+        if ($executarInserirMaterial)
         {
             return $this->responder(['codigo' => 'inserido']);
         }
