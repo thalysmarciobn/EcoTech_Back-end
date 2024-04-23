@@ -30,8 +30,10 @@ $app->rota(USUARIO . 'cadastrar', ['POST', 'OPTIONS'], [UsuarioControlador::clas
 $app->rota(USUARIO . 'checar', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'checar']);
 $app->rota(USUARIO . 'solicitacoes', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'solicitacoes']);
 $app->rota(USUARIO . 'dados', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'dados']);
+$app->rota(USUARIO . 'adicionarSolicitacao', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'adicionarSolicitacao']);
 
 $app->rota(USUARIO . 'enderecos', ['GET', 'OPTIONS'], [UsuarioControlador::class, 'enderecos']);
+$app->rota(USUARIO . 'adicionarEndereco', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'adicionarEndereco']);
 $app->rota(USUARIO . 'editarEndereco', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'editarEndereco']);
 $app->rota(USUARIO . 'removerEndereco', ['POST', 'OPTIONS'], [UsuarioControlador::class, 'removerEndereco']);
 
@@ -46,9 +48,8 @@ $app->rota(PRODUTOS . 'comprar', ['POST', 'OPTIONS'], [ProdutosControlador::clas
 
 // Rotas para Resíduos
 $app->rota(RESIDUOS . 'lista', ['GET', 'OPTIONS'], [ResiduosControlador::class, 'listaResiduos']);
-
 $app->rota(RESIDUOS . 'adicionar', ['POST', 'OPTIONS'], [ResiduosControlador::class, 'adicionarResiduo']);
-
+$app->rota(RESIDUOS . 'editar', ['POST', 'OPTIONS'], [ResiduosControlador::class, 'editar']);
 $app->rota(RESIDUOS . 'remover', ['POST', 'OPTIONS'], [ResiduosControlador::class, 'removerResiduo']);
 
 // Rotas para Materiais
@@ -56,10 +57,9 @@ $app->rota(MATERIAIS . 'lista', ['GET', 'OPTIONS'], [MateriaisControlador::class
 $app->rota(MATERIAIS . 'obter', ['GET', 'OPTIONS'], [MateriaisControlador::class, 'obter']);
 $app->rota(MATERIAIS . 'adicionar', ['POST', 'OPTIONS'], [MateriaisControlador::class, 'adicionarMaterial']);
 $app->rota(MATERIAIS . 'remover', ['POST', 'OPTIONS'], [MateriaisControlador::class, 'removerMaterial']);
+$app->rota(MATERIAIS . 'editar', ['POST', 'OPTIONS'], [MateriaisControlador::class, 'editar']);
 
 // Rotas para Solicitações
-$app->rota(SOLICITACOES . 'adicionar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'adicionarSolicitacao']);
-
 $app->rota(SOLICITACOES . 'lista', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaSolicitacoes']);
 $app->rota(SOLICITACOES . 'aceitar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'aceitarSolicitacao']);
 $app->rota(SOLICITACOES . 'negar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'negarSolicitacao']);

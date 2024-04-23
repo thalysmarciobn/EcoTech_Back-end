@@ -19,7 +19,8 @@ final class ResiduosControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos");
+        
+        $consulta = PDO::preparar("SELECT id_residuo, nm_residuo FROM residuos WHERE fl_inativo = false ORDER BY nm_residuo ASC");
         $consulta->execute();
 
         return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
@@ -39,12 +40,12 @@ final class ResiduosControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        if (empty($this->post('nm_residuo')))
+        $nomeResiduo = $this->post('nm_residuo');
+
+        if (is_null($nomeResiduo) || empty($nomeResiduo))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
-
-        $nomeResiduo = $this->post('nm_residuo');
 
         $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
         $consultaResiduo->execute([$nomeResiduo]);
@@ -71,20 +72,21 @@ final class ResiduosControlador extends BaseControlador
      * @request: nm_novo
      * @roles: Administrador
      */
-    public function atualizarResiduo(): array
+    public function editar(): array
     {
         if(!$this->receptaculo->validarAutenticacao(1))
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        if (empty($this->post('nm_residuo') || empty($this->post('nm_novo'))))
+        $nome = $this->post('nm_residuo');
+        $nomeNovo = $this->post('nm_novo');
+
+        if (is_null($nome) || empty($nome) ||
+            is_null($nomeNovo) || empty($nomeNovo))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
-
-        $nome = $this->post('nm_residuo');
-        $nomeNovo = $this->post('nm_novo');
 
         $consultaResiduo = PDO::preparar("SELECT nm_residuo FROM residuos WHERE nm_residuo = ?");
         $consultaResiduo->execute([$nome]);
@@ -105,7 +107,9 @@ final class ResiduosControlador extends BaseControlador
         }
 
         $atualizarResiduo = PDO::preparar("UPDATE residuos SET nm_residuo = ? WHERE nm_residuo = ?");
-        if ($atualizarResiduo->execute([$nomeNovo, $nome]))
+        $executarAtualizarResiduo = $atualizarResiduo->execute([$nomeNovo, $nome]);
+
+        if ($executarAtualizarResiduo)
         {
             return $this->responder(['codigo' => 'atualizado']);
         }
@@ -127,15 +131,17 @@ final class ResiduosControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        if (empty($this->post('nm_residuo')))
+        $nome = $this->post('nm_residuo');
+
+        if (is_null($nome) || empty($nome))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
 
-        $nome = $this->post('nm_residuo');
-
-        $removerResiduo = PDO::preparar("DELETE FROM residuos WHERE nm_residuo = ?");
-        if ($removerResiduo->execute([$nome]))
+        $removerResiduo = PDO::preparar("UPDATE residuos SET fl_inativo = true WHERE nm_residuo = ?");
+        $executarRemoverResiduo = $removerResiduo->execute([$nome]);
+        
+        if ($executarRemoverResiduo)
         {
             return $this->responder(['codigo' => $removerResiduo->rowCount()> 0 ? 'removido' : 'inexistente']);
         }

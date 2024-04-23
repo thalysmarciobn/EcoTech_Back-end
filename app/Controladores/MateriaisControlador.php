@@ -19,7 +19,7 @@ final class MateriaisControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais");
+        $consulta = PDO::preparar("SELECT id_material, nm_material, vl_eco, id_residuo, sg_medida FROM materiais WHERE fl_inativo = false ORDER BY nm_material ASC");
         $consulta->execute();
 
         return $this->responder($consulta->fetchAll(\PDO::FETCH_ASSOC));
@@ -62,6 +62,15 @@ final class MateriaisControlador extends BaseControlador
         $idResiduo = $this->post('id_residuo');
         $siglaMedida = $this->post('sg_medida');
 
+        if (is_null($nomeMaterial) || empty($nomeMaterial) ||
+            is_null($valorEco) || empty($valorEco) || !is_numeric($valorEco) ||
+            is_null($idResiduo) || empty($idResiduo) || !is_numeric($idResiduo) ||
+            is_null($siglaMedida) || empty($siglaMedida)
+        )
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
         $consultaMaterialNome = PDO::preparar("SELECT nm_material FROM materiais WHERE nm_material = ?");
         $consultaMaterialNome->execute([$nomeMaterial]);
 
@@ -102,14 +111,67 @@ final class MateriaisControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
-        $nomeMaterial = $this->post('nm_material');
 
-        $removerMaterial = PDO::preparar("DELETE FROM materiais WHERE nm_material = ?");
-        if ($removerMaterial->execute([$nomeMaterial]))
+        $idMaterial = $this->post('id_material');
+
+        if (is_null($idMaterial) || empty($idMaterial) || !is_numeric($idMaterial))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
+        $removerMaterial = PDO::preparar("UPDATE materiais SET fl_inativo = true WHERE id_material = ?");
+        if ($removerMaterial->execute([$idMaterial]))
         {
             return $this->responder(['codigo' => $removerMaterial->rowCount()> 0 ? 'removido' : 'inexistente']);
         }
 
         return $this->responder(['codigo' => 'inexistente']);
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 23/04/2024
+     * @summary: Atualiza um material a partir de uma requisição
+     * @roles: Administrador
+     */
+    public function editar(): array
+    {
+        if(!$this->receptaculo->validarAutenticacao(1))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $idMaterial = $this->post('id_material');
+        $nomeMaterial = $this->post('nm_material');
+        $valorEco = $this->post('vl_eco');
+        $siglaMedida = $this->post('sg_medida');
+        
+        if (is_null($idMaterial) || empty($idMaterial) || !is_numeric($idMaterial) ||
+            is_null($nomeMaterial) || empty($nomeMaterial) ||
+            is_null($valorEco) || empty($valorEco) || !is_numeric($valorEco) ||
+            is_null($siglaMedida) || empty($siglaMedida)
+        )
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
+        $consultaResiduo = PDO::preparar("SELECT nm_material FROM materiais WHERE id_material = ?");
+        $consultaResiduo->execute([$idMaterial]);
+        $retornoConsultaResiduo = $consultaResiduo->fetch(\PDO::FETCH_ASSOC);
+
+        if (!$retornoConsultaResiduo)
+        {
+            return $this->responder(['codigo' => 'inexistente']);
+        }
+
+        $atualizarResiduo = PDO::preparar("UPDATE materiais SET nm_material = ?, vl_eco = ?, sg_medida = ? WHERE id_material = ?");
+        $executarAtualizarResiduo = $atualizarResiduo->execute([$nomeMaterial, $valorEco, $siglaMedida, $idMaterial]);
+
+        if ($executarAtualizarResiduo)
+        {
+            return $this->responder(['codigo' => 'atualizado']);
+        }
+
+        return $this->responder(['codigo' => 'falha']);
     }
 }

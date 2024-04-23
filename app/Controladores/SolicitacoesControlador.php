@@ -57,7 +57,14 @@ final class SolicitacoesControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
         $idPessoa = $this->post('id_usuario');
+
+        if (is_null($idPessoa) || empty($idPessoa) || is_numeric($idPessoa))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+        
         $consultaValores = PDO::preparar("SELECT r.id_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
             JOIN materiais m ON m.id_material = us.id_material
@@ -80,12 +87,14 @@ final class SolicitacoesControlador extends BaseControlador
         {
             return $this->responder(['codigo' => 'login_necessario']);
         }
+
         $consultaValores = PDO::preparar("SELECT r.id_usuario, usu.nm_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
             JOIN usuarios  usu ON usu.id_usuario = r.id_usuario
             JOIN materiais m ON m.id_material = us.id_material
             JOIN residuos re ON re.id_residuo = m.id_residuo");
-        $consultaValores->execute([]);
+
+        $consultaValores->execute();
         
         return $this->responder($consultaValores->fetchAll(\PDO::FETCH_ASSOC));
     }
@@ -103,7 +112,9 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'cargo_insuficiente']);
         }
 
-        if (empty($this->post('id_solicitacao')))
+        $idSolicitacao = $this->post('id_solicitacao');
+
+        if (is_null($idSolicitacao) || empty($idSolicitacao))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
@@ -111,7 +122,6 @@ final class SolicitacoesControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $idFuncionario = $usuario['id'];
-        $idSolicitacao = $this->post('id_solicitacao');
 
         $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, vl_status FROM usuarios_solicitacoes WHERE id_solicitacao = ?");
         $consultaSolicitacao->execute([$idSolicitacao]);
@@ -152,7 +162,9 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'cargo_insuficiente']);
         }
 
-        if (empty($this->post('id_solicitacao')))
+        $idSolicitacao = $this->post('id_solicitacao');
+
+        if (is_null($idSolicitacao) || empty($idSolicitacao))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
@@ -160,7 +172,6 @@ final class SolicitacoesControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $idFuncionario = $usuario['id'];
-        $idSolicitacao = $this->post('id_solicitacao');
 
         $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, usuarios.id_usuario, nm_usuario, nm_residuo, nm_material, qt_material, vl_status, vl_eco, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material

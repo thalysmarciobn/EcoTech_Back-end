@@ -76,13 +76,14 @@ final class UsuarioControlador extends BaseControlador
      */
     public function logar(): array
     {
-        if (empty($this->post('nm_email')) || empty($this->post('nm_senha')))
+        $emailUsuario = $this->post('nm_email');
+        $senhaUsuario = $this->post('nm_senha');
+
+        if (is_null($emailUsuario) || empty($emailUsuario) ||
+        is_null($senhaUsuario) || empty($senhaUsuario))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
-
-        $emailUsuario = $this->post('nm_email');
-        $senhaUsuario = $this->post('nm_senha');
 
         $senhaCriptografada = md5($senhaUsuario);
 
@@ -166,14 +167,23 @@ final class UsuarioControlador extends BaseControlador
      */
     public function editarEndereco(): array
     {
-        if (is_null($this->post('id_endereco')) ||
-            is_null($this->post('nm_estado')) ||
-            is_null($this->post('nm_cep')) ||
-            is_null($this->post('nm_bairro')) ||
-            is_null($this->post('nm_rua')) ||
-            is_null($this->post('nm_complemento')) ||
-            is_null($this->post('nu_casa')) ||
-            is_null($this->post('nm_estado')))
+        $idEndereco = $this->post('id_endereco');
+        $nomeEstado = $this->post('nm_estado');
+        $nomeCidade = $this->post('nm_cidade');
+        $cep = $this->post('nm_cep');
+        $nomeBairro = $this->post('nm_bairro');
+        $nomeRua = $this->post('nm_rua');
+        $complemento = $this->post('nm_complemento');
+        $numeroCasa = $this->post('nu_casa');
+
+        if (is_null($idEndereco) || empty($idEndereco) || !is_numeric($idEndereco) ||
+        is_null($nomeEstado) || empty($nomeEstado) ||
+        is_null($nomeCidade) || empty($nomeCidade) ||
+        is_null($cep) || empty($cep) ||
+        is_null($nomeBairro) || empty($nomeBairro) ||
+        is_null($nomeRua) || empty($nomeRua) ||
+        is_null($complemento) || empty($complemento) ||
+        is_null($numeroCasa) || empty($numeroCasa) || !is_numeric($numeroCasa))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
@@ -186,15 +196,6 @@ final class UsuarioControlador extends BaseControlador
         $usuario = $this->receptaculo->autenticador->usuario();
 
         $usuarioId = $usuario['id_usuario'];
-
-        $idEndereco = $this->post('id_endereco');
-        $nomeEstado = $this->post('nm_estado');
-        $nomeCidade = $this->post('nm_cidade');
-        $cep = $this->post('nm_cep');
-        $nomeBairro = $this->post('nm_bairro');
-        $nomeRua = $this->post('nm_rua');
-        $complemento = $this->post('nm_complemento');
-        $numeroCasa = $this->post('nu_casa');
 
         $consultaEndereco = PDO::preparar("SELECT id_endereco, id_endereco FROM usuarios_enderecos WHERE id_endereco = ? AND id_usuario = ?");
         $consultaEndereco->execute([$idEndereco, $usuarioId]);
@@ -216,12 +217,25 @@ final class UsuarioControlador extends BaseControlador
     /**
      * @author: Thalys Márcio
      * @created: 22/04/2024
-     * @summary: Remove o endereço do usuário logado
+     * @summary: Adiciona o endereço do usuário logado
      * @roles: Usuário
      */
-    public function removerEndereco(): array
+    public function adicionarEndereco(): array
     {
-        if (is_null($this->post('id_endereco')))
+        $nomeEstado = $this->post('nm_estado');
+        $nomeCidade = $this->post('nm_cidade');
+        $cep = $this->post('nm_cep');
+        $nomeBairro = $this->post('nm_bairro');
+        $nomeRua = $this->post('nm_rua');
+        $complemento = $this->post('nm_complemento');
+        $numeroCasa = $this->post('nu_casa');
+
+        if (is_null($nomeEstado) || empty($nomeEstado) ||
+        is_null($nomeCidade) || empty($nomeCidade) ||
+        is_null($cep) || empty($cep) ||
+        is_null($nomeBairro) || empty($nomeBairro) ||
+        is_null($nomeRua) || empty($nomeRua) ||
+        is_null($numeroCasa) || empty($numeroCasa) || !is_numeric($numeroCasa))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
@@ -235,7 +249,39 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
+        $consultaEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep, fl_desativado)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, false)");
+        $executarEndereco = $consultaEndereco->execute([$usuarioId, $nomeRua, $nomeBairro, $nomeCidade, $nomeEstado, $numeroCasa, $complemento, $cep]);
+
+        if (!$executarEndereco) {
+            return $this->responder(['codigo' => 'falha']);
+        }
+        return $this->responder(['codigo' => 'inserido']);
+    }
+
+    /**
+     * @author: Thalys Márcio
+     * @created: 22/04/2024
+     * @summary: Remove o endereço do usuário logado
+     * @roles: Usuário
+     */
+    public function removerEndereco(): array
+    {
         $idEndereco = $this->post('id_endereco');
+
+        if (is_null($idEndereco) || empty($idEndereco) || !is_numeric($idEndereco))
+        {
+            return $this->responder(['codigo' => 'vazio']);
+        }
+
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
+        $usuario = $this->receptaculo->autenticador->usuario();
+
+        $usuarioId = $usuario['id_usuario'];
 
         $consultaEndereco = PDO::preparar("SELECT id_endereco FROM usuarios_enderecos WHERE id_endereco = ? AND id_usuario = ?");
         $consultaEndereco->execute([$idEndereco, $usuarioId]);
@@ -335,6 +381,7 @@ final class UsuarioControlador extends BaseControlador
         }
 
         $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
+        $porPagina = is_null($this->get('porPagina')) ? 15 : $this->get('porPagina');
         $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
             
         $usuario = $this->receptaculo->autenticador->usuario();
@@ -443,7 +490,9 @@ final class UsuarioControlador extends BaseControlador
            return $this->responder(['codigo' => 'login_necessario']);
        }
 
-       if (is_null($this->post('lista_materiais')))
+       $listaMateriais = $this->post('lista_materiais');
+
+       if (is_null($listaMateriais) || empty($listaMateriais))
        {
            return $this->responder(['codigo' => 'vazio']);
        }
