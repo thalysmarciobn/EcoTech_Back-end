@@ -176,7 +176,7 @@ final class SolicitacoesControlador extends BaseControlador
 
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $idFuncionario = $usuario['id'];
+        $idFuncionario = $usuario['id_usuario'];
 
         $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, usuarios.id_usuario, nm_usuario, nm_residuo, nm_material, qt_material, vl_status, vl_eco, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
