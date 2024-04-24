@@ -203,6 +203,7 @@ final class ProdutosControlador extends BaseControlador
                 
                 $arrayCompras[] = $resultadoProduto;
             }
+            
 
             if ($totalSaldoUsuario < $totalADebitar)
             {
@@ -236,8 +237,19 @@ final class ProdutosControlador extends BaseControlador
                         'nm_produto' => $produto['nm_produto']]);
                 }
 
+                $verificarEstoque = "SELECT * FROM produtos WHERE id_produto = ?";
+                $verificandoEstoque = PDO::preparar($verificarEstoque);
+                $estoqueVerificado = $verificandoEstoque->execute([$idProduto]);
+                if($estoqueVerificado['qt_produto'] > 0){
+            
                 $atualizarProduto = PDO::preparar("UPDATE produtos SET qt_produto = qt_produto - 1 WHERE id_produto = ?");
                 $executarAtualizarProduto = $atualizarProduto->execute([$idProduto]);
+                }else{
+                    PDO::reverterTransacao();
+                    return $this->responder([
+                        'codigo' => 'quantidade_do_produto_maior_que_no_estoque',
+                        'nm_produto' => $estoqueVerificado['nm_produto']]);
+                }
 
                 if (!$executarAtualizarProduto)
                 {

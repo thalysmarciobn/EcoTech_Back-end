@@ -126,7 +126,7 @@ final class SolicitacoesControlador extends BaseControlador
         
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $idFuncionario = $usuario['id'];
+        $idFuncionario = $usuario['id_usuario'];
 
         $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, vl_status FROM usuarios_solicitacoes WHERE id_solicitacao = ?");
         $consultaSolicitacao->execute([$idSolicitacao]);
