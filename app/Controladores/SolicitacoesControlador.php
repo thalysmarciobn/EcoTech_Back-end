@@ -23,10 +23,11 @@ final class SolicitacoesControlador extends BaseControlador
         $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
         $status = is_null($this->get('status')) ? '' : $this->get('status');
 
-        $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
+        $consultaSolicitacoes = PDO::paginacao("SELECT usuarios_solicitacoes.id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo, recebimentos.vl_ecorecebido, recebimentos.vl_realrecebido FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
             JOIN usuarios ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
+            LEFT JOIN recebimentos ON usuarios_solicitacoes.id_solicitacao = recebimentos.id_solicitacao
             AND (((case when vl_status = 0 then 'Pendente'
                         when vl_status = 1 then 'Aprovado'
                         when vl_status = -1 then 'Negado'
@@ -126,9 +127,9 @@ final class SolicitacoesControlador extends BaseControlador
         
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $idFuncionario = $usuario['id'];
+        $idFuncionario = $usuario['id_usuario'];
 
-        $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, vl_status FROM usuarios_solicitacoes WHERE id_solicitacao = ?");
+        $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, id_usuario, vl_status FROM usuarios_solicitacoes WHERE id_solicitacao = ?");
         $consultaSolicitacao->execute([$idSolicitacao]);
 
         $consultaSolicitacaoUsuario = $consultaSolicitacao->fetch(\PDO::FETCH_ASSOC);
@@ -138,6 +139,7 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'solicitacao_inexistente']);
         }
 
+        $idUsuarioSolicitacao = $consultaSolicitacaoUsuario['id_usuario'];
         $statusSolicitacao = $consultaSolicitacaoUsuario['vl_status'];
 
         if ($statusSolicitacao != 0)
@@ -147,7 +149,13 @@ final class SolicitacoesControlador extends BaseControlador
         }
         
         $updateSolicitacao = PDO::preparar("UPDATE usuarios_solicitacoes SET vl_status = -1 WHERE id_solicitacao = ?");
-        if($updateSolicitacao->execute([$idSolicitacao])){
+        $executarUpdateSolicitacao = $updateSolicitacao->execute([$idSolicitacao]);
+
+        if($executarUpdateSolicitacao){
+
+            $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_solicitacao, id_usuario, id_funcionario, vl_ecorecebido, vl_realrecebido, dt_recebimento) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+            $inserirRecebimento->execute([$idSolicitacao, $idUsuarioSolicitacao, $idFuncionario, 0, 0]);
+
             return $this->responder(['codigo' => 'atualizado']);
         }
 
@@ -176,7 +184,7 @@ final class SolicitacoesControlador extends BaseControlador
 
         $usuario = $this->receptaculo->autenticador->usuario();
 
-        $idFuncionario = $usuario['id'];
+        $idFuncionario = $usuario['id_usuario'];
 
         $consultaSolicitacao = PDO::preparar("SELECT id_solicitacao, usuarios.id_usuario, nm_usuario, nm_residuo, nm_material, qt_material, vl_status, vl_eco, dt_solicitacao FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
@@ -215,11 +223,12 @@ final class SolicitacoesControlador extends BaseControlador
             $valorCambioBrl = $resultadoCambio['vl_brl'];
 
             $ecoRecebido = $valorEco * $quantidadeMaterial;
-            $realRecebido = $valorCambioBrl * $valorEco;
+            $realRecebido = $valorCambioBrl * $ecoRecebido;
 
             $inserirRecebimento = PDO::preparar("INSERT INTO recebimentos (id_solicitacao, id_usuario, id_funcionario, vl_ecorecebido, vl_realrecebido, dt_recebimento) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)");
+            $executarInserirRecebimento = $inserirRecebimento->execute([$idSolicitacao, $idUsuario, $idFuncionario, $ecoRecebido, $realRecebido]);
 
-            if($inserirRecebimento->execute([$idSolicitacao, $idUsuario, $idFuncionario, $ecoRecebido, $realRecebido]))
+            if($executarInserirRecebimento)
             {
                 $atualizarUsuario = PDO::preparar("UPDATE usuarios SET qt_ecosaldo = qt_ecosaldo + ? WHERE id_usuario = ?");
                 $atualizarUsuario->execute([$ecoRecebido, $idUsuario]);

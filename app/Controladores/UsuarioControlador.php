@@ -46,23 +46,25 @@ final class UsuarioControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        $consultaUsuario = PDO::preparar("SELECT usuarios.id_usuario, nm_usuario, 
-                COUNT(DISTINCT recebimentos.id_recebimento) AS qt_recebimentos,
-                COUNT(DISTINCT usuarios_solicitacoes.id_solicitacao) AS qt_solicitacoes,
-                SUM(recebimentos.vl_ecorecebido) AS total_ecorecebido,
-                SUM(recebimentos.vl_realrecebido) AS total_realrecebido
+        $consultaUsuario = PDO::preparar("SELECT 
+                usuarios.id_usuario,
+                usuarios.nm_usuario,
+                COUNT(CASE WHEN usuarios_solicitacoes.vl_status = 0 THEN 1 END) AS solicitacoes_pendentes,
+                COUNT(CASE WHEN usuarios_solicitacoes.vl_status = 1 THEN 1 END) AS solicitacoes_aceitas,
+                COUNT(CASE WHEN usuarios_solicitacoes.vl_status = -1 THEN 1 END) AS solicitacoes_negadas,
+                SUM(COALESCE(recebimentos.vl_ecorecebido, 0)) AS valor_eco_recebido,
+                SUM(COALESCE(recebimentos.vl_realrecebido, 0)) AS valor_real_recebido
             FROM 
                 usuarios
             LEFT JOIN 
-                recebimentos ON recebimentos.id_usuario = usuarios.id_usuario
+                usuarios_solicitacoes ON usuarios.id_usuario = usuarios_solicitacoes.id_usuario
             LEFT JOIN 
-                usuarios_solicitacoes ON usuarios_solicitacoes.id_usuario = usuarios.id_usuario
-            WHERE 
-                nu_cargo = 0
+                recebimentos ON usuarios_solicitacoes.id_solicitacao = recebimentos.id_solicitacao
             GROUP BY 
-                usuarios.id_usuario, nm_usuario
+                usuarios.id_usuario, usuarios.nm_usuario
             ORDER BY 
-                usuarios.id_usuario DESC");
+                usuarios.id_usuario;
+            ");
         $consultaUsuario->execute();
 
         return $this->responder($consultaUsuario->fetchAll(\PDO::FETCH_ASSOC));
@@ -332,7 +334,8 @@ final class UsuarioControlador extends BaseControlador
         try
         {
             $consultaUsuario = PDO::preparar("SELECT nm_email FROM usuarios WHERE nm_email = ?");
-            $checarUsuario = $consultaUsuario->execute([$email]);
+            $consultaUsuario->execute([$email]);
+            $checarUsuario = $consultaUsuario->fetch(\PDO::FETCH_ASSOC);
 
             if ($checarUsuario)
             {
@@ -342,6 +345,7 @@ final class UsuarioControlador extends BaseControlador
 
             $senhaCriptografada = md5($senha);
 
+            var_dump([$email, $nomeCompleto, $senhaCriptografada, 0, 0]);
             $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
             $executarInserirUsuario = $inserirUsuario->execute([$email, $nomeCompleto, $senhaCriptografada, 0, 0]);
 
@@ -379,7 +383,7 @@ final class UsuarioControlador extends BaseControlador
             {
                 $atualizarSessao = PDO::preparar("UPDATE sessoes SET nm_chave = ?, dt_expiracao = ? WHERE id_usuario = ?");
                 $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
-
+                PDO::entregarTransacao();
                 return $this->responder(['codigo' => 'logado',
                     'usuario' => $usuario,
                     'chave' => $chave]);
@@ -388,12 +392,11 @@ final class UsuarioControlador extends BaseControlador
             $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
             if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
             {
+                PDO::entregarTransacao();
                 return $this->responder(['codigo' => 'logado',
                     'usuario' => $usuario,
                     'chave' => $chave]);
             }
-
-            PDO::entregarTransacao();
         }
         catch (\Exception $e)
         {
@@ -424,9 +427,10 @@ final class UsuarioControlador extends BaseControlador
 
         $usuarioId = $usuario['id_usuario'];
 
-        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
+        $consultaSolicitacoesUsuarios = PDO::paginacao("SELECT usuarios_solicitacoes.id_solicitacao, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo, recebimentos.vl_ecorecebido, recebimentos.vl_realrecebido FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material
             JOIN residuos ON residuos.id_residuo = materiais.id_residuo
+            LEFT JOIN recebimentos ON usuarios_solicitacoes.id_solicitacao = recebimentos.id_solicitacao
             WHERE usuarios_solicitacoes.id_usuario = :usuario
             AND (((case when vl_status = 0 then 'Pendente'
                         when vl_status = 1 then 'Aprovado'
