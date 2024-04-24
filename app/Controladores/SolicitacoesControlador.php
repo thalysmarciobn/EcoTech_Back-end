@@ -88,15 +88,19 @@ final class SolicitacoesControlador extends BaseControlador
             return $this->responder(['codigo' => 'login_necessario']);
         }
 
-        $consultaValores = PDO::preparar("SELECT r.id_usuario, usu.nm_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
+        $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
+        $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
+
+        $consultaValores = PDO::paginacao("SELECT r.id_usuario, usu.nm_usuario, nm_material, re.nm_residuo, us.vl_status, us.qt_material, us.id_material, m.vl_eco FROM recebimentos r
             JOIN usuarios_solicitacoes  us ON r.id_solicitacao = us.id_solicitacao
             JOIN usuarios  usu ON usu.id_usuario = r.id_usuario
             JOIN materiais m ON m.id_material = us.id_material
-            JOIN residuos re ON re.id_residuo = m.id_residuo");
-
-        $consultaValores->execute();
+            JOIN residuos re ON re.id_residuo = m.id_residuo",
+            [
+                ':pesquisa' => [$pesquisa, \PDO::PARAM_STR]
+            ], $pagina, 15);
         
-        return $this->responder($consultaValores->fetchAll(\PDO::FETCH_ASSOC));
+        return $this->responder($consultaValores);
     }
 
     /**

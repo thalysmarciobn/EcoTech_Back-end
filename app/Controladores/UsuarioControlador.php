@@ -106,8 +106,9 @@ final class UsuarioControlador extends BaseControlador
 
             $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
             $checarSessaoLivre->execute([$idUsuario]);
+            $resultadoChecarSessaoLivre = $checarSessaoLivre->fetch(\PDO::FETCH_ASSOC);
 
-            if ($checarSessaoLivre->fetch(\PDO::FETCH_ASSOC))
+            if ($resultadoChecarSessaoLivre)
             {
                 $atualizarSessao = PDO::preparar("UPDATE sessoes SET nm_chave = ?, dt_expiracao = ? WHERE id_usuario = ?");
                 $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
@@ -167,6 +168,11 @@ final class UsuarioControlador extends BaseControlador
      */
     public function editarEndereco(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
         $idEndereco = $this->post('id_endereco');
         $nomeEstado = $this->post('nm_estado');
         $nomeCidade = $this->post('nm_cidade');
@@ -182,15 +188,9 @@ final class UsuarioControlador extends BaseControlador
         is_null($cep) || empty($cep) ||
         is_null($nomeBairro) || empty($nomeBairro) ||
         is_null($nomeRua) || empty($nomeRua) ||
-        is_null($complemento) || empty($complemento) ||
         is_null($numeroCasa) || empty($numeroCasa) || !is_numeric($numeroCasa))
         {
             return $this->responder(['codigo' => 'vazio']);
-        }
-
-        if(!$this->receptaculo->validarAutenticacao(0))
-        {
-            return $this->responder(['codigo' => 'login_necessario']);
         }
 
         $usuario = $this->receptaculo->autenticador->usuario();
@@ -222,6 +222,11 @@ final class UsuarioControlador extends BaseControlador
      */
     public function adicionarEndereco(): array
     {
+        if(!$this->receptaculo->validarAutenticacao(0))
+        {
+            return $this->responder(['codigo' => 'login_necessario']);
+        }
+
         $nomeEstado = $this->post('nm_estado');
         $nomeCidade = $this->post('nm_cidade');
         $cep = $this->post('nm_cep');
@@ -238,11 +243,6 @@ final class UsuarioControlador extends BaseControlador
         is_null($numeroCasa) || empty($numeroCasa) || !is_numeric($numeroCasa))
         {
             return $this->responder(['codigo' => 'vazio']);
-        }
-
-        if(!$this->receptaculo->validarAutenticacao(0))
-        {
-            return $this->responder(['codigo' => 'login_necessario']);
         }
 
         $usuario = $this->receptaculo->autenticador->usuario();
@@ -309,62 +309,90 @@ final class UsuarioControlador extends BaseControlador
      */
     public function cadastrar(): array
     {
-        if (empty($this->post('nm_email')) ||
-            empty($this->post('nm_usuario')) ||
-            empty($this->post('nm_senha')))
+        if (is_null($this->post('nm_email')) || empty($this->post('nm_email')) ||
+            is_null($this->post('nm_usuario')) || empty($this->post('nm_usuario')) ||
+            is_null($this->post('nm_senha')) || empty($this->post('nm_senha')))
         {
             return $this->responder(['codigo' => 'vazio']);
         }
 
-        $enderecos = $this->post('lista_enderecos');
+        $nomeCompleto = $this->post('nm_usuario');
+        $email = $this->post('nm_email');
+        $senha = $this->post('nm_senha');
+        
+        $cep = $this->post('nm_cep');
+        $bairro = $this->post('nm_bairro');
+        $cidade = $this->post('nm_cidade');
+        $estado = $this->post('nm_estado');
+        $rua = $this->post('nm_rua');
+        $casa = $this->post('nu_casa');
+        $complemento = $this->post('nm_complemento');
 
-        $consultaUsuario = PDO::preparar("SELECT * FROM usuarios WHERE nm_email = ?");
-        $consultaUsuario->execute([$emailUsuario]);
-
-        if ($consultaUsuario->fetch(\PDO::FETCH_ASSOC))
-        {
-            return $this->responder(['codigo' => 'usuario_existente']);
-        }
-
+        PDO::iniciarTransacao();
         try
         {
-            PDO::iniciarTransacao();
-            
+            $senhaCriptografada = md5($senha);
+
             $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
-            
-            $emailUsuario = $this->post('nm_email');
-            $nomeUsuaurio = $this->post('nm_usuario');
-            $senhaCriptografada = md5($senhaUsuario);
-            
-            if ($inserirUsuario->execute([$emailUsuario, $nomeUsuaurio, $senhaCriptografada, 0, 0]))
+            $executarInserirUsuario = $inserirUsuario->execute([$email, $nomeCompleto, $senhaCriptografada, 0, 0]);
+
+            if (!$executarInserirUsuario)
             {
-                
-                $jsonLista = json_decode($enderecos, true);
-
-                foreach ($jsonLista as $endereco) {
-                    $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa) VALUES (?, ?, ?, ?, ?, ?)");
-                    
-                    $idUsuario = PDO::ultimaIdInserida();
-
-                    if (!$inserirUsuarioEndereco->execute([$idUsuario, $endereco['rua'], $endereco['bairro'], $endereco['cidade'], $endereco['estado'], 0]))
-                    {
-                        PDO::reverterTransacao();
-
-                        return $this->responder(['codigo' => 'falha']);
-                    }
-                }
-
-                PDO::entregarTransacao();
-                return $this->responder(['codigo' => 'inserido']);
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'falha_inserir_usuario']);
             }
-            PDO::reverterTransacao();
+
+            $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep, fl_desativado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $idUsuario = PDO::ultimaIdInserida();
+
+            var_dump("aa");
+            $resultadoInserirEnderecoUsuario = $inserirUsuarioEndereco->execute([$idUsuario, $rua, $bairro, $cidade, $estado, $casa, $complemento, $cep, false]);
+            if (!$resultadoInserirEnderecoUsuario)
+            {
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'falha_inserir_endereco']);
+            }
+
+            $umaHoraFutura = strtotime("+1 hour");
+            $dataFutura = date('d/m/Y H:i', $umaHoraFutura);
+
+            $consultaUsuario = PDO::preparar("SELECT id_usuario, nm_usuario, nm_email, nu_cargo, qt_ecosaldo FROM usuarios WHERE nm_email = ? and nm_senha = ?");
+            $consultaUsuario->execute([$email, $senhaCriptografada]);
+
+            $usuario = $consultaUsuario->fetch(\PDO::FETCH_ASSOC);
+
+            [$chaveAleatoria, $chave] = $this->receptaculo->autenticador->gerarChaveAutenticacao($idUsuario, 0, $nomeCompleto, $email, 0);
+
+            $checarSessaoLivre = PDO::preparar("SELECT (id_usuario) FROM sessoes WHERE id_usuario = ? AND dt_expiracao > CURRENT_TIMESTAMP");
+            $checarSessaoLivre->execute([$idUsuario]);
+            $resultadoChecarSessaoLivre = $checarSessaoLivre->fetch(\PDO::FETCH_ASSOC);
+
+            if ($resultadoChecarSessaoLivre)
+            {
+                $atualizarSessao = PDO::preparar("UPDATE sessoes SET nm_chave = ?, dt_expiracao = ? WHERE id_usuario = ?");
+                $atualizarSessao->execute([$chaveAleatoria, $dataFutura, $idUsuario]);
+
+                return $this->responder(['codigo' => 'logado',
+                    'usuario' => $usuario,
+                    'chave' => $chave]);
+            }
+
+            $inserirSessao = PDO::preparar("INSERT INTO sessoes (id_usuario, dt_expiracao, nm_chave) VALUES (?, ?, ?)");
+            if ($inserirSessao->execute([$idUsuario, $dataFutura, $chaveAleatoria]))
+            {
+                return $this->responder(['codigo' => 'logado',
+                    'usuario' => $usuario,
+                    'chave' => $chave]);
+            }
+
+            PDO::entregarTransacao();
         }
         catch (\Exception $e)
         {
+            var_dump($e->getMessage());
             PDO::reverterTransacao();
+            return $this->responder(['codigo' => 'falha']);
         }
-
-        return $this->responder(['codigo' => 'falha']);
     }
 
     /**

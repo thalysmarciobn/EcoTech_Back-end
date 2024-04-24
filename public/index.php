@@ -64,7 +64,11 @@ $app->rota(SOLICITACOES . 'lista', ['GET', 'OPTIONS'], [SolicitacoesControlador:
 $app->rota(SOLICITACOES . 'aceitar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'aceitarSolicitacao']);
 $app->rota(SOLICITACOES . 'negar', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'negarSolicitacao']);
 
+// Refazer
 $app->rota(SOLICITACOES . 'listaPessoa', ['POST', 'OPTIONS'], [SolicitacoesControlador::class, 'listaPessoaMaterial']);
+
+
+$app->rota(SOLICITACOES . 'listaUsuarios', ['GET', 'OPTIONS'], [SolicitacoesControlador::class, 'listaPessoaFuncionarioMaterial']);
 
 
 // Execução da aplicação
