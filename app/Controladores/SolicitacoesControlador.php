@@ -21,6 +21,7 @@ final class SolicitacoesControlador extends BaseControlador
 
         $pagina = is_null($this->get('pagina')) ? 1 : $this->get('pagina');
         $pesquisa = is_null($this->get('pesquisa')) ? '' : $this->get('pesquisa');
+        $status = is_null($this->get('status')) ? '' : $this->get('status');
 
         $consultaSolicitacoes = PDO::paginacao("SELECT id_solicitacao, nm_usuario, nm_residuo, nm_material, qt_material, sg_medida, vl_status, dt_solicitacao, nm_codigo FROM usuarios_solicitacoes 
             JOIN materiais ON materiais.id_material = usuarios_solicitacoes.id_material

@@ -331,6 +331,15 @@ final class UsuarioControlador extends BaseControlador
         PDO::iniciarTransacao();
         try
         {
+            $consultaUsuario = PDO::preparar("SELECT nm_email FROM usuarios WHERE nm_email = ?");
+            $checarUsuario = $consultaUsuario->execute([$email]);
+
+            if ($checarUsuario)
+            {
+                PDO::reverterTransacao();
+                return $this->responder(['codigo' => 'email_existente']);
+            }
+
             $senhaCriptografada = md5($senha);
 
             $inserirUsuario = PDO::preparar("INSERT INTO usuarios (nm_email, nm_usuario, nm_senha, qt_ecosaldo, nu_cargo) VALUES (?, ?, ?, ?, ?)");
@@ -342,11 +351,10 @@ final class UsuarioControlador extends BaseControlador
                 return $this->responder(['codigo' => 'falha_inserir_usuario']);
             }
 
-            $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep, fl_desativado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $inserirUsuarioEndereco = PDO::preparar("INSERT INTO usuarios_enderecos (id_usuario, nm_rua, nm_bairro, nm_cidade, nm_estado, nu_casa, nm_complemento, nm_cep, fl_desativado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, false)");
             $idUsuario = PDO::ultimaIdInserida();
 
-            var_dump("aa");
-            $resultadoInserirEnderecoUsuario = $inserirUsuarioEndereco->execute([$idUsuario, $rua, $bairro, $cidade, $estado, $casa, $complemento, $cep, false]);
+            $resultadoInserirEnderecoUsuario = $inserirUsuarioEndereco->execute([$idUsuario, $rua, $bairro, $cidade, $estado, $casa, $complemento, $cep]);
             if (!$resultadoInserirEnderecoUsuario)
             {
                 PDO::reverterTransacao();
